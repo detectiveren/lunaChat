@@ -15,6 +15,9 @@ def main(page: ft.Page):
     newMessage = ft.TextField()  # Take input from the Text Field
     lunaUsername = ft.TextField(label="Enter your username")
 
+    page.title = "lunaChat"
+    page.update()
+
     def onLunaMessage(message: LunaMessage):
         if message.lunaMessageType == "lunaChatMessage":
             lunaChat.controls.append(ft.Text(f"{message.lunaUser}: {message.lunaText}", color=ft.colors.PINK))
@@ -41,7 +44,9 @@ def main(page: ft.Page):
             page.session.set("lunaUsername", lunaUsername.value)
             page.dialog.open = False
             page.pubsub.send_all(LunaMessage(lunaUser=lunaUsername.value,
-                                             lunaText=f"{lunaUsername.value} has joined lunaChat",
+                                             lunaText=f"{lunaUsername.value} has joined {settings.lunaChatName}'s "
+                                                      f"lunaChat instance "
+                                                      f"({settings.host}:{settings.port})",
                                              lunaMessageType="lunaLoginMessage"))
 
     page.dialog = ft.AlertDialog(

@@ -74,7 +74,8 @@ def main(page: ft.Page):
     )  # Take input from the Text Field
     currentVersion = "1.0"
     versionBranch = "alpha"
-    buildNumber = "2120"
+    buildNumber = "2150"
+    imageFormats = [".png", ".jpg", ".jpeg", ".gif"]  # Supported image formats
     lunaUsername = ft.TextField(label="Enter your username")
 
     page.title = "lunaChat"
@@ -85,6 +86,14 @@ def main(page: ft.Page):
             lunaMsg = lunaChatMessage(message)
         elif message.lunaMessageType == "lunaLoginMessage":  # If the message type is a login message
             lunaMsg = ft.Text(message.lunaText, italic=True, color=ft.colors.WHITE, size=12)
+        elif message.lunaMessageType == "lunaImageMessage":  # If the message type is an image message
+            lunaMsg = ft.Image(
+                src=f"{message.lunaText}",  # The source being the image URL
+                width=512,
+                height=512,
+                fit=ft.ImageFit.CONTAIN,
+
+            )
         lunaChat.controls.append(lunaMsg)
         page.update()
 
@@ -98,6 +107,10 @@ def main(page: ft.Page):
             print(f"Build Number: {buildNumber} (requested by {lunaUsername.value})")
             page.pubsub.send_all(LunaMessage(lunaUser="lunaBOT", lunaText=f"Build Number: {buildNumber}",
                                              lunaMessageType="lunaChatMessage"))
+        if any(imgFormat in newMessage.value for imgFormat in imageFormats): # If the message contains an image link
+            print(f"LOG ({lunaUsername.value}) sent an image with the link {newMessage.value}")
+            page.pubsub.send_all(LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
+                                             lunaMessageType="lunaImageMessage"))
         print(f"LOG ({lunaUsername.value}): {newMessage.value}")  # Log the chat messages to the terminal
         newMessage.value = ""  # Resets the value
         page.update()  # Updates the page

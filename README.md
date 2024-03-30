@@ -17,13 +17,14 @@ lunaChat is an app that is built on Python and Flutter, currently it is a chat a
 - Set up a name for your own lunaChat instance ```check settings.py```
 - Set up a description for your lunaChat instance ```check settings.py```
 - Enter a username when you login to a lunaChat instance
-- Send and recieve text messages in a lunaChat instance
+- Send and receive text messages in a lunaChat instance
+- Send and receive embedded images and GIFs
 - Interact with lunaBOT
 
 ## What are the planned features for lunaChat?
 
 - Encryption (so that messages are protected)
-- Sending and recieving images and videos
+- Sending and receiving images and videos
 - Further commands to interact with lunaBOT more
 - Further customization of lunaChat
 - Setting profile pictures

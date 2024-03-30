@@ -58,6 +58,11 @@ class lunaChatMessage(ft.Row):
         return searchForColors[hash(lunaUser) % len(searchForColors)]
 
 
+with open('./config/usernamesInUse.txt', 'w') as clearUserList:  # Clear usernameInUse list from the previous session
+    clearUserList.write("admin\n")
+    clearUserList.close()
+
+
 def main(page: ft.Page):
     lunaChat = ft.ListView(
         expand=True,
@@ -99,28 +104,62 @@ def main(page: ft.Page):
 
     page.pubsub.subscribe(onLunaMessage)  # Updates the web clients when there are new messages
 
+    def lunaBOT(message):
+        lunaBOTUsername = "lunaBOT"  # lunaBOT's username
+        lunaBOTResponse = "Please enter a parameter when invoking the bot"  # lunaBOT's response
+
+        def sendLunaBOTMessage(response):  # Send the response from lunaBOT into chat
+            page.pubsub.send_all(LunaMessage(lunaUser=lunaBOTUsername, lunaText=response,
+                                             lunaMessageType="lunaChatMessage"))
+
+        if "buildNumber" in message:  # If the message contains "buildNumber" then lunaBOT will print out the build number
+            lunaBOTResponse = f"Build Number: {buildNumber}"  # lunaBOT's response
+            sendLunaBOTMessage(lunaBOTResponse)
+        if "commands" in message:
+            lunaBOTResponse = ("List of commands\n"
+                               "buildNumber - Displays lunaChat's build number\n"
+                               "birthday - lunaBOT says Happy Birthday\n"
+                               "winter - lunaBOT says Happy Winter Holiday\n"
+                               "syntax example: !lunaBOT buildNumber")
+            sendLunaBOTMessage(lunaBOTResponse)
+        if "birthday" in message:
+            lunaBOTResponse = "HAPPY BIRTHDAY!"
+            sendLunaBOTMessage(lunaBOTResponse)
+        if "winter" in message:
+            lunaBOTResponse = "HAPPY WINTER HOLIDAY!"
+            sendLunaBOTMessage(lunaBOTResponse)
+        print(f"LOG (Message Type: lunaChatMessage) (lunaBOT): {lunaBOTResponse} (requested by {lunaUsername.value})")
+
     def sendClick(e):
         # lunaChat.controls.append(ft.Text(newMessage.value))  # Appends the message sent by the user
         page.pubsub.send_all(LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
                                          lunaMessageType="lunaChatMessage"))  # Grabs the lunaUsername, message and message type
-        if newMessage.value == "buildNumber":  # If the message contains "buildNumber" then lunaBOT will print out the build number
-            print(f"Build Number: {buildNumber} (requested by {lunaUsername.value})")
-            page.pubsub.send_all(LunaMessage(lunaUser="lunaBOT", lunaText=f"Build Number: {buildNumber}",
-                                             lunaMessageType="lunaChatMessage"))
-        if any(imgFormat in newMessage.value for imgFormat in imageFormats): # If the message contains an image link
-            print(f"LOG ({lunaUsername.value}) sent an image with the link {newMessage.value}")
+        if "!lunaBOT" in newMessage.value:
+            lunaBOT(newMessage.value)
+        if any(imgFormat in newMessage.value for imgFormat in imageFormats):  # If the message contains an image link
+            print(f"LOG (Message Type: lunaImageMessage) ({lunaUsername.value}) sent an image with a link")
             page.pubsub.send_all(LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
                                              lunaMessageType="lunaImageMessage"))
-        print(f"LOG ({lunaUsername.value}): {newMessage.value}")  # Log the chat messages to the terminal
+        print(f"LOG (Message Type: lunaChatMessage) ({lunaUsername.value}): {newMessage.value}")
+        # Log the chat messages to the terminal
         newMessage.value = ""  # Resets the value
         page.update()  # Updates the page
 
     def joinClick(e):
+        usernamesInUse = []
+        with open('./config/usernamesInUse.txt') as readUsernames:
+            usernamesInUse = readUsernames.readlines()  # Read all the usernames from the textfile into the list
+            usernamesInUse = [line.rstrip('\n') for line in usernamesInUse]
+
         if not lunaUsername.value:
             lunaUsername.error_text = "USERNAME CANNOT BE BLANK"
             lunaUsername.update()
         elif "lunaBOT" in lunaUsername.value:  # If the user input is lunaBOT it will return an error
             lunaUsername.error_text = "USERNAME INVALID"
+            lunaUsername.update()
+        elif lunaUsername.value.strip() in usernamesInUse:
+            # If the username is found in the usernamesInUse list then the username is in use
+            lunaUsername.error_text = "USERNAME IN USE"
             lunaUsername.update()
         else:
             page.session.set("lunaUsername", lunaUsername.value)  # Takes in the username value that was entered
@@ -130,6 +169,13 @@ def main(page: ft.Page):
                                                       f"lunaChat instance "
                                                       f"({settings.host}:{settings.port})",
                                              lunaMessageType="lunaLoginMessage"))
+            print(f"LOG (Message Type: lunaLoginMessage) ({lunaUsername.value}) has joined {settings.lunaChatName}'s "
+                  f"lunaChat instance ({settings.host}:{settings.port})")
+            # Display the login message in the terminal
+
+            with open('./config/usernamesInUse.txt', 'a') as f:
+                f.write(f"{lunaUsername.value}\n")  # Append the username to the list
+                f.close()
 
     def onKeyboard(key: ft.KeyboardEvent):
         if key.key == "Enter":  # If  the key is the Enter key
@@ -144,13 +190,13 @@ def main(page: ft.Page):
         actions_alignment="end",
     )  # Opens the alert dialog welcoming the user to lunaChat and takes the input from the user which is the username
 
-    page.add(
-        lunaChat, ft.Row(controls=[newMessage, ft.ElevatedButton("Send lunaMessage", on_click=sendClick,
-                                                                 color=ft.colors.PINK)]),
-        ft.Text(f"Version {currentVersion}", size=20, spans=[ft.TextSpan(
-            f"{versionBranch}", ft.TextStyle(size=10)
-        )]), ft.Text(f"Description for {settings.lunaChatName}'s lunaChat instance: {settings.lunaDescription}")
-    )
+    page.add(ft.Text(f"Version {currentVersion}", size=20, spans=[ft.TextSpan(
+        f"{versionBranch}", ft.TextStyle(size=10))]),
+             lunaChat, ft.Row(controls=[newMessage,
+                                        ft.ElevatedButton("Send lunaMessage", on_click=sendClick,
+                                                          color=ft.colors.PINK)]),
+             ft.Text(f"Description for {settings.lunaChatName}'s lunaChat instance: {settings.lunaDescription}")
+             )
     page.on_keyboard_event = onKeyboard  # Check if there is keyboard input
 
 

@@ -1,5 +1,8 @@
 # lunaChat
 [![Python application](https://github.com/detectiveren/lunaChat/actions/workflows/python-app.yml/badge.svg)](https://github.com/detectiveren/lunaChat/actions/workflows/python-app.yml)
+[![Static Badge](https://img.shields.io/badge/v1.0.0%20alpha1-Documentation?style=flat&logo=GitHub&logoColor=white&label=Get&labelColor=black&color=blue)](https://github.com/detectiveren/lunaChat/releases)
+
+
 
 lunaChat is an app that is built on Python and Flutter, currently it is a chat app that can send and recieve messages across a lunaChat instance. This application is currently in development and advanced features will be introduced later on.
 

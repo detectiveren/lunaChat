@@ -36,13 +36,15 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test lunaChat
       run: |
-        timeout 2m python3 luna.py # Python script runs for 2 minutes
-        exit 0
-    - name: Check exit code
+        python3 luna.py & 
+        echo $! > web_app_pid.txt  # Save the process ID of the web app to a file
+    - name: Wait for server to start
+      run: sleep 10  # Adjust sleep duration as needed
+    - name: Test web app functionality
+      run: curl http://127.0.0.1:5000/
+    - name: Wait for tests to complete
+      run: sleep 1m
+    - name: Stop Python web app
       run: |
-        if [ $? -eq 0 ]; then
-          echo "Python script ran successfully."
-        else
-          echo "Python script encountered an error or timed out."
-          exit 1
-        fi
+        kill -9 $(cat web_app_pid.txt)  # Terminate the web app process using the saved process ID
+        rm web_app_pid.txt  # Remove the file containing the process ID

@@ -38,12 +38,14 @@ jobs:
       run: |
         python3 luna.py > luna_log.txt 2>&1 & 
         echo $! > web_app_pid.txt  # Save the process ID of the web app to a file
-    - name: Wait for server to start
-      run: sleep 10  # Adjust sleep duration as needed
+        sleep 30
     - name: Display log output
       run: cat luna_log.txt  # Display any output logged by the Python script
+      timeout-minutes: 1  # Adjust timeout to ensure sufficient time for log output
     - name: Test web app functionality
-      run: curl http://127.0.0.1:5000/
+      run: |
+        curl http://127.0.0.1:5000/
+        sleep 30
     - name: Wait for tests to complete
       run: sleep 1m
     - name: Stop Python web app

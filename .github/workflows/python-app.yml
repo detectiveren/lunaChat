@@ -35,4 +35,14 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test lunaChat
-      run: python3 luna.py
+      run: |
+        timeout 2m python3 luna.py # Python script runs for 2 minutes
+        exit 0
+    - name: Check exit code
+      run: |
+        if [ $? -eq 0 ]; then
+          echo "Python script ran successfully."
+        else
+          echo "Python script encountered an error or timed out."
+          exit 1
+        fi

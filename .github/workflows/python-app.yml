@@ -36,10 +36,12 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test lunaChat
       run: |
-        python3 luna.py & 
+        python3 luna.py > luna_log.txt 2>&1 & 
         echo $! > web_app_pid.txt  # Save the process ID of the web app to a file
     - name: Wait for server to start
       run: sleep 10  # Adjust sleep duration as needed
+    - name: Display log output
+      run: cat luna_log.txt  # Display any output logged by the Python script
     - name: Test web app functionality
       run: curl http://127.0.0.1:5000/
     - name: Wait for tests to complete

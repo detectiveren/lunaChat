@@ -38,6 +38,9 @@ jobs:
       run: |
         python3 luna.py > luna_log.txt 2>&1 & 
         echo $! > web_app_pid.txt  # Save the process ID of the web app to a file
+        export INPUT_STORE=$(python luna.py)
+           echo "Output from terminal: "
+           echo $INPUT_STORE
         sleep 30
     - name: Display log output
       run: cat luna_log.txt  # Display any output logged by the Python script

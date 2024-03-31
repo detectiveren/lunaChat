@@ -6,6 +6,8 @@ import settings
 # For info on how to deal with keyboard events https://flet.dev/docs/guides/python/keyboard-shortcuts/
 # More information for customizing the layout https://flet.dev/docs/tutorials/python-realtime-chat/#animated-scrolling-to-the-last-message
 
+print(f"lunaChat instance {settings.lunaChatName} started on http://{settings.host}:{settings.port}/")
+
 class LunaMessage():
     def __init__(self, lunaUser: str, lunaText: str, lunaMessageType: str):
         self.lunaUser = lunaUser
@@ -58,10 +60,14 @@ class lunaChatMessage(ft.Row):
         return searchForColors[hash(lunaUser) % len(searchForColors)]
 
 
+print("loaded classes LunaMessage and LunaChatMessage, message container has been created")
+
 with open('./config/usernamesInUse.txt', 'w') as clearUserList:  # Clear usernameInUse list from the previous session
     clearUserList.write("admin\n")
     clearUserList.close()
 
+
+print("lunaChat instance is ready")
 
 def main(page: ft.Page):
     lunaChat = ft.ListView(
@@ -85,6 +91,9 @@ def main(page: ft.Page):
 
     page.title = "lunaChat"
     page.update()
+
+    print(f"LOG receiving anonymous join on lunaChat instance "
+          f"{settings.lunaChatName} ({settings.host}:{settings.port})")
 
     def onLunaMessage(message: LunaMessage):
         if message.lunaMessageType == "lunaChatMessage":  # If the message type is a chat message

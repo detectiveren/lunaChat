@@ -1,12 +1,38 @@
 import flet as ft
 import settings
 
-
 # Resources used to develop the app https://flet.dev/docs/tutorials/python-realtime-chat/#getting-started-with-flet
 # For info on how to deal with keyboard events https://flet.dev/docs/guides/python/keyboard-shortcuts/
 # More information for customizing the layout https://flet.dev/docs/tutorials/python-realtime-chat/#animated-scrolling-to-the-last-message
 
 print(f"lunaChat instance {settings.lunaChatName} started on http://{settings.host}:{settings.port}/")
+
+# Moved both getInitials and getAvatarColor outside the previous class as it will be referenced by two classes
+# Doesn't need to be within a class anyway
+
+
+def getInitials(lunaUser: str):
+    return lunaUser[:1].capitalize()  # Get the first letter of the username and capitalize it
+
+
+def getAvatarColor(lunaUser: str):  # Get Avatar colors
+    searchForColors = [  # Array of Avatar colors
+        ft.colors.AMBER,
+        ft.colors.BLUE,
+        ft.colors.BROWN,
+        ft.colors.CYAN,
+        ft.colors.GREEN,
+        ft.colors.INDIGO,
+        ft.colors.LIME,
+        ft.colors.ORANGE,
+        ft.colors.PINK,
+        ft.colors.PURPLE,
+        ft.colors.RED,
+        ft.colors.TEAL,
+        ft.colors.YELLOW,
+    ]
+    return searchForColors[hash(lunaUser) % len(searchForColors)]
+
 
 class LunaMessage():
     def __init__(self, lunaUser: str, lunaText: str, lunaMessageType: str):
@@ -19,11 +45,11 @@ class lunaChatMessage(ft.Row):
     def __init__(self, message: LunaMessage):
         super().__init__()
         self.vertical_alignment = "start"
-        self.controls = [
+        self.controls = [  # This is where the message container is, avatar, username and message are in this container
             ft.CircleAvatar(  # The avatar that will pop up in the message container
-                content=ft.Text(self.getInitials(message.lunaUser)),
+                content=ft.Text(getInitials(message.lunaUser)),
                 color=ft.colors.WHITE,
-                bgcolor=self.getAvatarColor(message.lunaUser)
+                bgcolor=getAvatarColor(message.lunaUser)
             ),
             ft.Column(
                 [
@@ -38,26 +64,36 @@ class lunaChatMessage(ft.Row):
             )
         ]
 
-    def getInitials(self, lunaUser: str):
-        return lunaUser[:1].capitalize()  # Get the first letter of the username and capitalize it
 
-    def getAvatarColor(self, lunaUser: str):  # Get Avatar colors
-        searchForColors = [  # Array of Avatar colors
-            ft.colors.AMBER,
-            ft.colors.BLUE,
-            ft.colors.BROWN,
-            ft.colors.CYAN,
-            ft.colors.GREEN,
-            ft.colors.INDIGO,
-            ft.colors.LIME,
-            ft.colors.ORANGE,
-            ft.colors.PINK,
-            ft.colors.PURPLE,
-            ft.colors.RED,
-            ft.colors.TEAL,
-            ft.colors.YELLOW,
+class lunaImageMessage(ft.Row):
+    def __init__(self, imageMessage: LunaMessage):
+        super().__init__()
+        self.vertical_alignment = "start"
+        self.controls = [
+            ft.CircleAvatar(  # The avatar that will pop up in the message container
+                content=ft.Text(getInitials(imageMessage.lunaUser)),
+                color=ft.colors.WHITE,
+                bgcolor=getAvatarColor(imageMessage.lunaUser)
+            ),
+            ft.Column(
+                [
+                    ft.Text(imageMessage.lunaUser, color=ft.colors.PINK),
+                    # The username that will pop up in the message container
+                    ft.Text(imageMessage.lunaText, selectable=True, color=ft.colors.BLUE),
+                    # The message that will pop up in the message container
+                    ft.Image(
+                        src=f"{imageMessage.lunaText}",  # The source being the image URL
+                        width=512,
+                        height=512,
+                        fit=ft.ImageFit.CONTAIN,
+
+                    )
+                ],
+                tight=True,
+                spacing=5
+
+            )
         ]
-        return searchForColors[hash(lunaUser) % len(searchForColors)]
 
 
 print("loaded classes LunaMessage and LunaChatMessage, message container has been created")
@@ -66,8 +102,8 @@ with open('./config/usernamesInUse.txt', 'w') as clearUserList:  # Clear usernam
     clearUserList.write("admin\n")
     clearUserList.close()
 
-
 print("lunaChat instance is ready")
+
 
 def main(page: ft.Page):
     lunaChat = ft.ListView(
@@ -85,7 +121,7 @@ def main(page: ft.Page):
     )  # Take input from the Text Field
     currentVersion = "1.0"
     versionBranch = "alpha"
-    buildNumber = "2150"
+    buildNumber = "2240"
     imageFormats = [".png", ".jpg", ".jpeg", ".gif"]  # Supported image formats
     lunaUsername = ft.TextField(label="Enter your username")
 
@@ -101,13 +137,7 @@ def main(page: ft.Page):
         elif message.lunaMessageType == "lunaLoginMessage":  # If the message type is a login message
             lunaMsg = ft.Text(message.lunaText, italic=True, color=ft.colors.WHITE, size=12)
         elif message.lunaMessageType == "lunaImageMessage":  # If the message type is an image message
-            lunaMsg = ft.Image(
-                src=f"{message.lunaText}",  # The source being the image URL
-                width=512,
-                height=512,
-                fit=ft.ImageFit.CONTAIN,
-
-            )
+            lunaMsg = lunaImageMessage(message)
         lunaChat.controls.append(lunaMsg)
         page.update()
 
@@ -141,14 +171,19 @@ def main(page: ft.Page):
 
     def sendClick(e):
         # lunaChat.controls.append(ft.Text(newMessage.value))  # Appends the message sent by the user
-        page.pubsub.send_all(LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
-                                         lunaMessageType="lunaChatMessage"))  # Grabs the lunaUsername, message and message type
+        def standardMessage():
+            page.pubsub.send_all(LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
+                                             lunaMessageType="lunaChatMessage"))
+            # Grabs the lunaUsername, message and message type
         if "!lunaBOT" in newMessage.value:
+            standardMessage()
             lunaBOT(newMessage.value)
-        if any(imgFormat in newMessage.value for imgFormat in imageFormats):  # If the message contains an image link
+        elif any(imgFormat in newMessage.value for imgFormat in imageFormats):  # If the message contains an image link
             print(f"LOG (Message Type: lunaImageMessage) ({lunaUsername.value}) sent an image with a link")
             page.pubsub.send_all(LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
                                              lunaMessageType="lunaImageMessage"))
+        else:
+            standardMessage()
         print(f"LOG (Message Type: lunaChatMessage) ({lunaUsername.value}): {newMessage.value}")
         # Log the chat messages to the terminal
         newMessage.value = ""  # Resets the value

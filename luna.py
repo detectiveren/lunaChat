@@ -97,7 +97,7 @@ class lunaImageMessage(ft.Row):
         ]
 
 
-print("loaded classes LunaMessage and LunaChatMessage, message container has been created")
+print("loaded classes LunaMessage, LunaChatMessage and LunaImageMessage, message container has been created")
 
 with open('./config/usernamesInUse.txt', 'w') as clearUserList:  # Clear usernameInUse list from the previous session
     clearUserList.write("admin\n")
@@ -125,6 +125,7 @@ def main(page: ft.Page):
     buildNumber = "2240"
     imageFormats = [".png", ".jpg", ".jpeg", ".gif"]  # Supported image formats
     lunaUsername = ft.TextField(label="Enter your username")
+    lunaServerPassword = ft.TextField(label="Enter password")
 
     page.title = "lunaChat"
     page.update()
@@ -247,7 +248,7 @@ def main(page: ft.Page):
         if key.key == "Enter":  # If  the key is the Enter key
             sendClick(newMessage.value)  # Send the message that was in the text field
 
-    page.dialog = ft.AlertDialog(
+    login = ft.AlertDialog(
         open=True,
         modal=True,
         title=ft.Text("Welcome to lunaChat!"),
@@ -255,6 +256,40 @@ def main(page: ft.Page):
         actions=[ft.ElevatedButton(text="Join lunaChat", on_click=joinClick, color=ft.colors.PINK)],
         actions_alignment="end",
     )  # Opens the alert dialog welcoming the user to lunaChat and takes the input from the user which is the username
+
+    def loginDialog():  # Display the login alert dialog
+        page.dialog = login
+        login.open = True
+        page.update()
+
+    def passwordCheck(e):  # Takes the input from the password textfield and checks if it's the correct password
+        if lunaServerPassword.value == settings.serverPassword:
+            page.session.set("lunaServerPassword", lunaServerPassword.value)
+            page.dialog.open = False
+            loginDialog()  # Calls the login dialog once it has closed the password dialog
+        else:
+            lunaServerPassword.error_text = "INVALID PASSWORD"
+            lunaServerPassword.update()
+
+    passwordDialog = ft.AlertDialog(
+        open=True,
+        modal=True,
+        title=ft.Text(f"Enter password for {settings.lunaChatName}'s lunaChat instance"),
+        content=ft.Column([lunaServerPassword], tight=True),
+        actions=[ft.ElevatedButton(text="Join", on_click=passwordCheck, color=ft.colors.PINK)],
+        actions_alignment="end",
+
+    )
+
+    def displayPasswordScreen():  # Display the password alert dialog
+        page.dialog = passwordDialog
+        passwordDialog.open = True
+        page.update()
+
+    if settings.serverPasswordRequired:
+        displayPasswordScreen()
+    else:
+        loginDialog()
 
     page.add(ft.Text(f"Version {currentVersion}", size=20, spans=[ft.TextSpan(
         f"{versionBranch}", ft.TextStyle(size=10))]),

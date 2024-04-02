@@ -7,6 +7,7 @@ import settings
 
 print(f"lunaChat instance {settings.lunaChatName} started on http://{settings.host}:{settings.port}/")
 
+
 # Moved both getInitials and getAvatarColor outside the previous class as it will be referenced by two classes
 # Doesn't need to be within a class anyway
 
@@ -167,14 +168,22 @@ def main(page: ft.Page):
         if "winter" in message:
             lunaBOTResponse = "HAPPY WINTER HOLIDAY!"
             sendLunaBOTMessage(lunaBOTResponse)
+        if "banned_word_sent" in message:
+            lunaBOTResponse = f"{lunaUsername.value} tried to send a message that contained a banned word"
+            sendLunaBOTMessage(lunaBOTResponse)
         print(f"LOG (Message Type: lunaChatMessage) (lunaBOT): {lunaBOTResponse} (requested by {lunaUsername.value})")
 
     def sendClick(e):
         # lunaChat.controls.append(ft.Text(newMessage.value))  # Appends the message sent by the user
+        with open('./config/bannedWords.txt') as readBannedWords:
+            bannedWords = readBannedWords.readlines()  # Read all the usernames from the textfile into the list
+            bannedWords = [line.rstrip('\n') for line in bannedWords]
+
         def standardMessage():
             page.pubsub.send_all(LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
                                              lunaMessageType="lunaChatMessage"))
             # Grabs the lunaUsername, message and message type
+
         if "!lunaBOT" in newMessage.value:
             standardMessage()
             lunaBOT(newMessage.value)
@@ -182,6 +191,8 @@ def main(page: ft.Page):
             print(f"LOG (Message Type: lunaImageMessage) ({lunaUsername.value}) sent an image with a link")
             page.pubsub.send_all(LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
                                              lunaMessageType="lunaImageMessage"))
+        elif newMessage.value.strip() in bannedWords:
+            lunaBOT("banned_word_sent")
         else:
             standardMessage()
         print(f"LOG (Message Type: lunaChatMessage) ({lunaUsername.value}): {newMessage.value}")
@@ -190,10 +201,13 @@ def main(page: ft.Page):
         page.update()  # Updates the page
 
     def joinClick(e):
-        usernamesInUse = []
         with open('./config/usernamesInUse.txt') as readUsernames:
             usernamesInUse = readUsernames.readlines()  # Read all the usernames from the textfile into the list
             usernamesInUse = [line.rstrip('\n') for line in usernamesInUse]
+
+        with open('./config/bannedUsernames.txt') as readBannedUsernames:
+            bannedUsername = readBannedUsernames.readlines()  # Read all the usernames from the textfile into the list
+            bannedUsername = [line.rstrip('\n') for line in bannedUsername]
 
         if not lunaUsername.value:
             lunaUsername.error_text = "USERNAME CANNOT BE BLANK"
@@ -201,10 +215,18 @@ def main(page: ft.Page):
         elif "lunaBOT" in lunaUsername.value:  # If the user input is lunaBOT it will return an error
             lunaUsername.error_text = "USERNAME INVALID"
             lunaUsername.update()
+            print("LOG (Login System) Anonymous user tried to log in but the username was invalid")
         elif lunaUsername.value.strip() in usernamesInUse:
             # If the username is found in the usernamesInUse list then the username is in use
             lunaUsername.error_text = "USERNAME IN USE"
             lunaUsername.update()
+            print(f"LOG (Login System) Anonymous user tried to log in with the username {lunaUsername.value.strip()}"
+                  f" but it was already in use")
+        elif lunaUsername.value.strip() in bannedUsername:
+            lunaUsername.error_text = "USERNAME IS BANNED"
+            lunaUsername.update()
+            print(f"LOG (Login System) Anonymous user tried to log in with the username {lunaUsername.value.strip()}"
+                  f" but the username is banned")
         else:
             page.session.set("lunaUsername", lunaUsername.value)  # Takes in the username value that was entered
             page.dialog.open = False

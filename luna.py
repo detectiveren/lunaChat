@@ -3,7 +3,8 @@ import settings
 
 # Resources used to develop the app https://flet.dev/docs/tutorials/python-realtime-chat/#getting-started-with-flet
 # For info on how to deal with keyboard events https://flet.dev/docs/guides/python/keyboard-shortcuts/
-# More information for customizing the layout https://flet.dev/docs/tutorials/python-realtime-chat/#animated-scrolling-to-the-last-message
+# More information for customizing the layout 
+# https://flet.dev/docs/tutorials/python-realtime-chat/#animated-scrolling-to-the-last-message
 
 print(f"lunaChat instance {settings.lunaChatName} started on http://{settings.host}:{settings.port}/")
 
@@ -35,6 +36,33 @@ def getAvatarColor(lunaUser: str):  # Get Avatar colors
     return searchForColors[hash(lunaUser) % len(searchForColors)]
 
 
+# Where the colors of UI elements are defined
+if settings.lunaExperimentalColorOverride:
+    chatMessageColor = ft.colors.BLACK
+    UsernameColor = ft.colors.BLACK
+    messageBoxColor = ft.colors.WHITE
+    messageTypeColor = ft.colors.BLACK
+    titleTextColor = ft.colors.BLACK
+    descriptionTextColor = ft.colors.BLACK
+    dialogColor = ft.colors.PINK_50
+    dialogButtonColor = ft.colors.PINK_100
+    dialogMessageBoxColor = ft.colors.WHITE
+    pageBackgroundColor = ft.colors.PINK_50
+    loginMessageColor = ft.colors.BLACK
+else:
+    chatMessageColor = ft.colors.BLUE
+    UsernameColor = ft.colors.PINK
+    messageBoxColor = ft.colors.GREY_900
+    messageTypeColor = ft.colors.WHITE
+    titleTextColor = ft.colors.WHITE
+    descriptionTextColor = ft.colors.WHITE
+    dialogColor = ft.colors.GREY_900
+    dialogButtonColor = ft.colors.GREY_900
+    dialogMessageBoxColor = ft.colors.GREY_800
+    pageBackgroundColor = ft.colors.BLACK
+    loginMessageColor = ft.colors.WHITE
+
+
 class LunaMessage():
     def __init__(self, lunaUser: str, lunaText: str, lunaMessageType: str):
         self.lunaUser = lunaUser
@@ -54,9 +82,9 @@ class lunaChatMessage(ft.Row):
             ),
             ft.Column(
                 [
-                    ft.Text(message.lunaUser, color=ft.colors.PINK),
+                    ft.Text(message.lunaUser, color=UsernameColor),
                     # The username that will pop up in the message container
-                    ft.Text(message.lunaText, selectable=True, color=ft.colors.BLUE)
+                    ft.Text(message.lunaText, selectable=True, color=chatMessageColor)
                     # The message that will pop up in the message container
                 ],
                 tight=True,
@@ -114,7 +142,10 @@ def main(page: ft.Page):
     )  # Build the layout of the app
     newMessage = ft.TextField(
         hint_text="Type a message...",
+        hint_style=ft.TextStyle(size=15, color=messageTypeColor),
+        color=messageTypeColor,
         autofocus=True,
+        bgcolor=messageBoxColor,
         min_lines=1,
         max_lines=5,
         filled=True,
@@ -122,12 +153,15 @@ def main(page: ft.Page):
     )  # Take input from the Text Field
     currentVersion = "1.0"
     versionBranch = "alpha"
-    buildNumber = "2240"
+    buildNumber = "2329"
     imageFormats = [".png", ".jpg", ".jpeg", ".gif"]  # Supported image formats
-    lunaUsername = ft.TextField(label="Enter your username")
-    lunaServerPassword = ft.TextField(label="Enter password")
+    lunaUsername = ft.TextField(label="Enter your username", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
+                                label_style=ft.TextStyle(size=15, color=messageTypeColor))
+    lunaServerPassword = ft.TextField(label="Enter password", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
+                                      label_style=ft.TextStyle(size=15, color=messageTypeColor))
 
     page.title = "lunaChat"
+    page.bgcolor = pageBackgroundColor
     page.update()
 
     print(f"LOG receiving anonymous join on lunaChat instance "
@@ -137,7 +171,7 @@ def main(page: ft.Page):
         if message.lunaMessageType == "lunaChatMessage":  # If the message type is a chat message
             lunaMsg = lunaChatMessage(message)
         elif message.lunaMessageType == "lunaLoginMessage":  # If the message type is a login message
-            lunaMsg = ft.Text(message.lunaText, italic=True, color=ft.colors.WHITE, size=12)
+            lunaMsg = ft.Text(message.lunaText, italic=True, color=loginMessageColor, size=12)
         elif message.lunaMessageType == "lunaImageMessage":  # If the message type is an image message
             lunaMsg = lunaImageMessage(message)
         lunaChat.controls.append(lunaMsg)
@@ -251,9 +285,11 @@ def main(page: ft.Page):
     login = ft.AlertDialog(
         open=True,
         modal=True,
-        title=ft.Text("Welcome to lunaChat!"),
+        bgcolor=dialogColor,
+        title=ft.Text("Welcome to lunaChat!", color=titleTextColor),
         content=ft.Column([lunaUsername], tight=True),
-        actions=[ft.ElevatedButton(text="Join lunaChat", on_click=joinClick, color=ft.colors.PINK)],
+        actions=[ft.ElevatedButton(text="Join lunaChat", on_click=joinClick, color=ft.colors.PINK,
+                                   bgcolor=dialogButtonColor)],
         actions_alignment="end",
     )  # Opens the alert dialog welcoming the user to lunaChat and takes the input from the user which is the username
 
@@ -274,9 +310,11 @@ def main(page: ft.Page):
     passwordDialog = ft.AlertDialog(
         open=True,
         modal=True,
-        title=ft.Text(f"Enter password for {settings.lunaChatName}'s lunaChat instance"),
+        bgcolor=dialogColor,
+        title=ft.Text(f"Enter password for {settings.lunaChatName}'s lunaChat instance", color=titleTextColor),
         content=ft.Column([lunaServerPassword], tight=True),
-        actions=[ft.ElevatedButton(text="Join", on_click=passwordCheck, color=ft.colors.PINK)],
+        actions=[ft.ElevatedButton(text="Join", on_click=passwordCheck, color=ft.colors.PINK,
+                                   bgcolor=dialogButtonColor)],
         actions_alignment="end",
 
     )
@@ -292,11 +330,17 @@ def main(page: ft.Page):
         loginDialog()
 
     page.add(ft.Text(f"Version {currentVersion}", size=20, spans=[ft.TextSpan(
-        f"{versionBranch}", ft.TextStyle(size=10))]),
+        f"{versionBranch}", ft.TextStyle(size=10, color=titleTextColor))], color=titleTextColor),
              lunaChat, ft.Row(controls=[newMessage,
-                                        ft.ElevatedButton("Send lunaMessage", on_click=sendClick,
-                                                          color=ft.colors.PINK)]),
-             ft.Text(f"Description for {settings.lunaChatName}'s lunaChat instance: {settings.lunaDescription}")
+                                        ft.IconButton(
+                                            icon=ft.icons.SEND_ROUNDED,
+                                            bgcolor=ft.colors.PINK_100,
+                                            icon_color=ft.colors.PINK,
+                                            icon_size=40,
+                                            on_click=sendClick
+                                        )]),
+             ft.Text(f"Description for {settings.lunaChatName}'s lunaChat instance: {settings.lunaDescription}",
+                     color=descriptionTextColor)
              )
     page.on_keyboard_event = onKeyboard  # Check if there is keyboard input
 

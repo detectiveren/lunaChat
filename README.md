@@ -21,9 +21,12 @@ lunaChat is an app that is built on Python and Flutter, currently it is a chat a
 - Set up your own lunaChat instance, change the host and port if you want to make it public or work across LAN ```check settings.py```
 - Set up a name for your own lunaChat instance ```check settings.py```
 - Set up a description for your lunaChat instance ```check settings.py```
+- Set a password for your lunaChat instance ```check settings.py```
 - Enter a username when you login to a lunaChat instance
 - Send and receive text messages in a lunaChat instance
 - Send and receive embedded images and GIFs
+- Ban specific usernames using a banned usernames list ```check config/bannedUsernames.txt```
+- Ban specific words using a banned words list ```check config/bannedWords.txt```
 - Interact with lunaBOT
 
 ## What are the planned features for lunaChat?
@@ -40,4 +43,5 @@ lunaChat is an app that is built on Python and Flutter, currently it is a chat a
 
 So far lunaBOT is still really early and can only do one command which is telling you what the build number is, further upgrades are planned for lunaBOT so look out for that.
 
-- ```buildNumber``` will make lunaBOT print the build number
+- ```!lunaBOT buildNumber``` will make lunaBOT print the build number
+- ```!lunaBOT commands``` will make lunaBOT display a full list of commands

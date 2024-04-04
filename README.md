@@ -4,11 +4,11 @@
 
 
 
-lunaChat is an app that is built on Python and Flutter, currently it is a chat app that can send and recieve messages across a lunaChat instance. This application is currently in development and advanced features will be introduced later on.
+lunaChat is an app that is built on Python and Flet (powered by Flutter), currently it is a chat app that can send and recieve messages across a lunaChat instance. This application is currently in development and advanced features will be introduced later on.
 
 ## Screenshots
 
-- lunaChat Style
+- Light Mode
 ![image](https://github.com/detectiveren/lunaChat/assets/55319774/b709a751-0627-465f-8025-6492255d4b68)
 - Dark Mode
 ![image](https://github.com/detectiveren/lunaChat/assets/55319774/21e9ba89-878b-4c88-bda5-b54b267e0788)

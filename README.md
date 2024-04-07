@@ -48,6 +48,12 @@ lunaChat is an app that is built on Python and Flet (powered by Flutter), curren
 - Channel based system
 - and more!
 
+## Encryption in lunaChat so far
+
+lunaChat has message encryption in ```v1.0.0-alpha1-build2329``` and newer, the encryption is cryptography module using Fernet to generate a key for each message sent and encrypting the message sent with the generated key (each message has its own generated key). This is still early implementation of encryption so things can change and improve.
+
+You can read more on the type of encryption lunaChat is using here: https://cryptography.io/en/latest/fernet/
+
 ## Interacting with lunaBOT
 
 So far lunaBOT is still really early and can only do one command which is telling you what the build number is, further upgrades are planned for lunaBOT so look out for that.

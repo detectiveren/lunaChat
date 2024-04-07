@@ -1,5 +1,6 @@
 import flet as ft
 import settings
+from cryptography.fernet import Fernet
 
 # Resources used to develop the app https://flet.dev/docs/tutorials/python-realtime-chat/#getting-started-with-flet
 # For info on how to deal with keyboard events https://flet.dev/docs/guides/python/keyboard-shortcuts/
@@ -11,6 +12,20 @@ print(f"lunaChat instance {settings.lunaChatName} started on http://{settings.ho
 
 # Moved both getInitials and getAvatarColor outside the previous class as it will be referenced by two classes
 # Doesn't need to be within a class anyway
+def fernetEncryptMessage(message):  # Grab the message from the user
+    key = Fernet.generate_key()  # Generate a key
+    text = Fernet(key)  # Initialize Fernet with the generated key
+    encoded_message = message.encode()  # Encode the message
+    encrypted_message = text.encrypt(encoded_message)  # Encrypt the message
+    return encrypted_message, text
+    # Return the encrypted message alongside the key
+
+
+def fernetDecryptMessage(message, key):  # Grab the encrypted message and key
+    decrypted_message = key.decrypt(message)  # Decrypt the message using the key
+    decoded_message = decrypted_message.decode()  # Decode the message
+    return decoded_message
+    # Return the decrypted message
 
 
 def getInitials(lunaUser: str):
@@ -64,10 +79,11 @@ else:
 
 
 class LunaMessage():
-    def __init__(self, lunaUser: str, lunaText: str, lunaMessageType: str):
+    def __init__(self, lunaUser: str, lunaText: str, lunaMessageType: str, lunaKey):
         self.lunaUser = lunaUser
         self.lunaText = lunaText
         self.lunaMessageType = lunaMessageType  # The type of message that is being sent, login message or chat message
+        self.lunaKey = lunaKey  # The message key
 
 
 class lunaChatMessage(ft.Row):
@@ -150,7 +166,7 @@ def main(page: ft.Page):
         max_lines=5,
         filled=True,
         expand=True,
-    )  # Take input from the Text Field
+    )  # Take input from the Text Fields
     currentVersion = "1.0"
     versionBranch = "alpha"
     buildNumber = "2329"
@@ -169,10 +185,17 @@ def main(page: ft.Page):
 
     def onLunaMessage(message: LunaMessage):
         if message.lunaMessageType == "lunaChatMessage":  # If the message type is a chat message
+            decrypted_message = fernetDecryptMessage(message.lunaText, message.lunaKey)  # Decrypt the message
+            message = LunaMessage(lunaUser=message.lunaUser, lunaText=decrypted_message,
+                                  lunaMessageType=message.lunaMessageType, lunaKey=message.lunaKey)
+            # Add the decrypted message to LunaMessage
             lunaMsg = lunaChatMessage(message)
         elif message.lunaMessageType == "lunaLoginMessage":  # If the message type is a login message
             lunaMsg = ft.Text(message.lunaText, italic=True, color=loginMessageColor, size=12)
         elif message.lunaMessageType == "lunaImageMessage":  # If the message type is an image message
+            decrypted_message = fernetDecryptMessage(message.lunaText, message.lunaKey)
+            message = LunaMessage(lunaUser=message.lunaUser, lunaText=decrypted_message,
+                                  lunaMessageType=message.lunaMessageType, lunaKey=message.lunaKey)
             lunaMsg = lunaImageMessage(message)
         lunaChat.controls.append(lunaMsg)
         page.update()
@@ -184,8 +207,9 @@ def main(page: ft.Page):
         lunaBOTResponse = "Please enter a parameter when invoking the bot"  # lunaBOT's response
 
         def sendLunaBOTMessage(response):  # Send the response from lunaBOT into chat
-            page.pubsub.send_all(LunaMessage(lunaUser=lunaBOTUsername, lunaText=response,
-                                             lunaMessageType="lunaChatMessage"))
+            encrypted_bot_message, bot_key = fernetEncryptMessage(response)  # Encrypt the bots messages
+            page.pubsub.send_all(LunaMessage(lunaUser=lunaBOTUsername, lunaText=encrypted_bot_message,
+                                             lunaMessageType="lunaChatMessage", lunaKey=bot_key))
 
         if "buildNumber" in message:  # If the message contains "buildNumber" then lunaBOT will print out the build number
             lunaBOTResponse = f"Build Number: {buildNumber}"  # lunaBOT's response
@@ -214,19 +238,25 @@ def main(page: ft.Page):
             bannedWords = readBannedWords.readlines()  # Read all the usernames from the textfile into the list
             bannedWords = [line.rstrip('\n') for line in bannedWords]
 
+        message = newMessage.value  # This is the message in plain text so that the if statements can read it
+        encrypted_message, key = fernetEncryptMessage(newMessage.value)
+        # Encrypt the message and return both the encrypted message and key
+        newMessage.value = encrypted_message
+        # Put the encrypted message into newMessage.value
+
         def standardMessage():
             page.pubsub.send_all(LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
-                                             lunaMessageType="lunaChatMessage"))
-            # Grabs the lunaUsername, message and message type
+                                             lunaMessageType="lunaChatMessage", lunaKey=key))
+            # Sends the lunaUsername, message, message type and message key
 
-        if "!lunaBOT" in newMessage.value:
+        if "!lunaBOT" in message:
             standardMessage()
-            lunaBOT(newMessage.value)
-        elif any(imgFormat in newMessage.value for imgFormat in imageFormats):  # If the message contains an image link
+            lunaBOT(message)
+        elif any(imgFormat in message for imgFormat in imageFormats):  # If the message contains an image link
             print(f"LOG (Message Type: lunaImageMessage) ({lunaUsername.value}) sent an image with a link")
             page.pubsub.send_all(LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
-                                             lunaMessageType="lunaImageMessage"))
-        elif newMessage.value.strip() in bannedWords:
+                                             lunaMessageType="lunaImageMessage", lunaKey=key))
+        elif message.strip() in bannedWords:
             lunaBOT("banned_word_sent")
         else:
             standardMessage()
@@ -269,7 +299,7 @@ def main(page: ft.Page):
                                              lunaText=f"{lunaUsername.value} has joined {settings.lunaChatName}'s "
                                                       f"lunaChat instance "
                                                       f"({settings.host}:{settings.port})",
-                                             lunaMessageType="lunaLoginMessage"))
+                                             lunaMessageType="lunaLoginMessage", lunaKey=0))
             print(f"LOG (Message Type: lunaLoginMessage) ({lunaUsername.value}) has joined {settings.lunaChatName}'s "
                   f"lunaChat instance ({settings.host}:{settings.port})")
             # Display the login message in the terminal

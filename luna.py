@@ -141,7 +141,54 @@ class lunaImageMessage(ft.Row):
         ]
 
 
-print("loaded classes LunaMessage, LunaChatMessage and LunaImageMessage, message container has been created")
+class lunaVideoMessage(ft.Row):
+    # This does not work at the moment
+    def __init__(self, videoMessage: LunaMessage):
+        super().__init__()
+
+        #def play_or_pause(e):
+        #    video.play_or_pause()
+
+        videoEmbed = [
+            ft.VideoMedia(
+                f"{videoMessage.lunaText}"
+            )
+        ]
+        self.vertical_alignment = "start"
+        self.controls = [
+            ft.CircleAvatar(  # The avatar that will pop up in the message container
+                content=ft.Text(getInitials(videoMessage.lunaUser)),
+                color=ft.colors.WHITE,
+                bgcolor=getAvatarColor(videoMessage.lunaUser)
+            ),
+            ft.Column(
+                [
+                    ft.Text(videoMessage.lunaUser, color=ft.colors.PINK),
+                    # The username that will pop up in the message container
+                    ft.Text(videoMessage.lunaText, selectable=True, color=ft.colors.BLUE),
+                    # The message that will pop up in the message container
+                    ft.Video(
+                        expand=True,
+                        playlist=videoEmbed,
+                        playlist_mode=ft.PlaylistMode.LOOP,
+                        fill_color=ft.colors.BLUE_400,
+                        aspect_ratio=16 / 9,
+                        volume=100,
+                        autoplay=True,
+                        filter_quality=ft.FilterQuality.HIGH,
+                        muted=False
+                    ),
+                ],
+                tight=True,
+                spacing=5
+
+            )
+        ]
+
+
+
+print("loaded classes LunaMessage, LunaChatMessage, LunaImageMessage and LunaVideoMessage, message container has been "
+      "created")
 
 with open('./config/usernamesInUse.txt', 'w') as clearUserList:  # Clear usernameInUse list from the previous session
     clearUserList.write("admin\n")
@@ -169,8 +216,9 @@ def main(page: ft.Page):
     )  # Take input from the Text Fields
     currentVersion = "1.0"
     versionBranch = "alpha"
-    buildNumber = "2329"
+    buildNumber = "2420"
     imageFormats = [".png", ".jpg", ".jpeg", ".gif"]  # Supported image formats
+    videoFormats = [".mp4"]
     lunaUsername = ft.TextField(label="Enter your username", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
                                 label_style=ft.TextStyle(size=15, color=messageTypeColor))
     lunaServerPassword = ft.TextField(label="Enter password", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
@@ -197,6 +245,12 @@ def main(page: ft.Page):
             message = LunaMessage(lunaUser=message.lunaUser, lunaText=decrypted_message,
                                   lunaMessageType=message.lunaMessageType, lunaKey=message.lunaKey)
             lunaMsg = lunaImageMessage(message)
+        elif message.lunaMessageType == "lunaVideoMessage":
+            decrypted_message = fernetDecryptMessage(message.lunaText, message.lunaKey)
+            message = LunaMessage(lunaUser=message.lunaUser, lunaText=decrypted_message,
+                                  lunaMessageType=message.lunaMessageType, lunaKey=message.lunaKey)
+            lunaMsg = lunaVideoMessage(message)
+
         lunaChat.controls.append(lunaMsg)
         page.update()
 
@@ -256,6 +310,10 @@ def main(page: ft.Page):
             print(f"LOG (Message Type: lunaImageMessage) ({lunaUsername.value}) sent an image with a link")
             page.pubsub.send_all(LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
                                              lunaMessageType="lunaImageMessage", lunaKey=key))
+        #elif any(videoFormat in message for videoFormat in videoFormats):
+        #    print(f"LOG (Message Type: lunaVideoMessage) ({lunaUsername.value}) sent a video with a link")
+        #    page.pubsub.send_all(LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
+        #                                     lunaMessageType="lunaVideoMessage", lunaKey=key))
         elif message.strip() in bannedWords:
             lunaBOT("banned_word_sent")
         else:

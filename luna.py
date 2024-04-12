@@ -6,6 +6,9 @@ from cryptography.fernet import Fernet
 # For info on how to deal with keyboard events https://flet.dev/docs/guides/python/keyboard-shortcuts/
 # More information for customizing the layout 
 # https://flet.dev/docs/tutorials/python-realtime-chat/#animated-scrolling-to-the-last-message
+# https://flet.dev/docs/controls/page#navigation_bar
+# https://flet.dev/docs/controls/appbar/
+# https://flet.dev/docs/controls/banner/
 
 print(f"lunaChat instance {settings.lunaChatName} started on http://{settings.host}:{settings.port}/")
 
@@ -146,7 +149,7 @@ class lunaVideoMessage(ft.Row):
     def __init__(self, videoMessage: LunaMessage):
         super().__init__()
 
-        #def play_or_pause(e):
+        # def play_or_pause(e):
         #    video.play_or_pause()
 
         videoEmbed = [
@@ -184,7 +187,6 @@ class lunaVideoMessage(ft.Row):
 
             )
         ]
-
 
 
 print("loaded classes LunaMessage, LunaChatMessage, LunaImageMessage and LunaVideoMessage, message container has been "
@@ -296,6 +298,7 @@ def main(page: ft.Page):
         encrypted_message, key = fernetEncryptMessage(newMessage.value)
         # Encrypt the message and return both the encrypted message and key
         newMessage.value = encrypted_message
+
         # Put the encrypted message into newMessage.value
 
         def standardMessage():
@@ -310,7 +313,7 @@ def main(page: ft.Page):
             print(f"LOG (Message Type: lunaImageMessage) ({lunaUsername.value}) sent an image with a link")
             page.pubsub.send_all(LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
                                              lunaMessageType="lunaImageMessage", lunaKey=key))
-        #elif any(videoFormat in message for videoFormat in videoFormats):
+        # elif any(videoFormat in message for videoFormat in videoFormats):
         #    print(f"LOG (Message Type: lunaVideoMessage) ({lunaUsername.value}) sent a video with a link")
         #    page.pubsub.send_all(LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
         #                                     lunaMessageType="lunaVideoMessage", lunaKey=key))
@@ -353,11 +356,15 @@ def main(page: ft.Page):
         else:
             page.session.set("lunaUsername", lunaUsername.value)  # Takes in the username value that was entered
             page.dialog.open = False
-            page.pubsub.send_all(LunaMessage(lunaUser=lunaUsername.value,
-                                             lunaText=f"{lunaUsername.value} has joined {settings.lunaChatName}'s "
-                                                      f"lunaChat instance "
-                                                      f"({settings.host}:{settings.port})",
-                                             lunaMessageType="lunaLoginMessage", lunaKey=0))
+            if settings.displayServerAddressOnLogin:  # If the value is true then display the server address and port
+                page.pubsub.send_all(LunaMessage(lunaUser=lunaUsername.value,
+                                                 lunaText=f"{lunaUsername.value} has joined {settings.lunaChatName}'s lunaChat instance "
+                                                          f"({settings.host}:{settings.port})",
+                                                 lunaMessageType="lunaLoginMessage", lunaKey=0))
+            else:
+                page.pubsub.send_all(LunaMessage(lunaUser=lunaUsername.value,
+                                                 lunaText=f"{lunaUsername.value} has joined {settings.lunaChatName}'s lunaChat instance",
+                                                 lunaMessageType="lunaLoginMessage", lunaKey=0))
             print(f"LOG (Message Type: lunaLoginMessage) ({lunaUsername.value}) has joined {settings.lunaChatName}'s "
                   f"lunaChat instance ({settings.host}:{settings.port})")
             # Display the login message in the terminal
@@ -417,18 +424,70 @@ def main(page: ft.Page):
     else:
         loginDialog()
 
-    page.add(ft.Text(f"Version {currentVersion}", size=20, spans=[ft.TextSpan(
-        f"{versionBranch}", ft.TextStyle(size=10, color=titleTextColor))], color=titleTextColor),
-             lunaChat, ft.Row(controls=[newMessage,
+    # Close the description banner when the user clicks on the close button
+    def closeDisplayDescription(e):
+        page.banner = lunaChatDesc
+        lunaChatDesc.open = False
+        page.update()
+
+    lunaChatDesc = ft.Banner(
+        bgcolor=ft.colors.PINK_700,
+        leading=ft.Icon(ft.icons.DESCRIPTION, color=ft.colors.WHITE, size=40),
+        content=ft.Text(settings.lunaDescription),
+        actions=[ft.ElevatedButton("Close", on_click=closeDisplayDescription, color=ft.colors.PINK,
+                                   bgcolor=ft.colors.PINK_100)]
+    )  # This is where all the contents of the description banner are defined
+
+    # Display the description banner when the user clicks on the icon button
+    def openDisplayDescription(e):
+        page.banner = lunaChatDesc
+        lunaChatDesc.open = True
+        page.update()
+
+    # Close the version info banner when the user clicks on the close button
+    def closeVersionInfo(e):
+        page.banner = lunaVersionInfo
+        lunaVersionInfo.open = False
+        page.update()
+
+    lunaVersionInfo = ft.Banner(
+        bgcolor=ft.colors.PINK_700,
+        leading=ft.Icon(ft.icons.INFO, color=ft.colors.WHITE, size=40),
+        content=ft.Text(f"Version {currentVersion}", size=20, spans=[ft.TextSpan(
+            f"{versionBranch}", ft.TextStyle(size=10, color=titleTextColor))], color=titleTextColor),
+        actions=[ft.ElevatedButton("Close", on_click=closeVersionInfo, color=ft.colors.PINK,
+                                   bgcolor=ft.colors.PINK_100)]
+    )  # This is where all the contents of the version info banner are defined
+
+    # Display the version info banner when the user clicks on the icon button
+    def openVersionInfo(e):
+        page.banner = lunaVersionInfo
+        lunaVersionInfo.open = True
+        page.update()
+
+    # This the bar on the top of the app that contains the title and icon buttons
+    page.appbar = ft.AppBar(
+        title=ft.Text(f"{settings.lunaChatName} | lunaChat", size=20, weight=ft.FontWeight.BOLD),
+        center_title=False,
+        bgcolor=pageBackgroundColor,
+        toolbar_height=40,
+        actions=[
+            ft.IconButton(ft.icons.INFO, on_click=openVersionInfo, icon_color=ft.colors.PINK),
+            ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription, icon_color=ft.colors.PINK),
+            ft.IconButton(ft.icons.SUPERVISED_USER_CIRCLE, icon_color=ft.colors.PINK)
+        ]
+
+    )
+
+    # This is where the message container, message box and message button are added onto the app
+    page.add(lunaChat, ft.Row(controls=[newMessage,
                                         ft.IconButton(
                                             icon=ft.icons.SEND_ROUNDED,
                                             bgcolor=ft.colors.PINK_100,
                                             icon_color=ft.colors.PINK,
                                             icon_size=40,
                                             on_click=sendClick
-                                        )]),
-             ft.Text(f"Description for {settings.lunaChatName}'s lunaChat instance: {settings.lunaDescription}",
-                     color=descriptionTextColor)
+                                        )])
              )
     page.on_keyboard_event = onKeyboard  # Check if there is keyboard input
 

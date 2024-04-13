@@ -1,6 +1,7 @@
 import flet as ft
 import settings
 from cryptography.fernet import Fernet
+from time import sleep
 
 # Resources used to develop the app https://flet.dev/docs/tutorials/python-realtime-chat/#getting-started-with-flet
 # For info on how to deal with keyboard events https://flet.dev/docs/guides/python/keyboard-shortcuts/
@@ -289,6 +290,7 @@ def main(page: ft.Page):
         print(f"LOG (Message Type: lunaChatMessage) (lunaBOT): {lunaBOTResponse} (requested by {lunaUsername.value})")
 
     def sendClick(e):
+        emptyMsg = False
         # lunaChat.controls.append(ft.Text(newMessage.value))  # Appends the message sent by the user
         with open('./config/bannedWords.txt') as readBannedWords:
             bannedWords = readBannedWords.readlines()  # Read all the usernames from the textfile into the list
@@ -319,9 +321,17 @@ def main(page: ft.Page):
         #                                     lunaMessageType="lunaVideoMessage", lunaKey=key))
         elif message.strip() in bannedWords:
             lunaBOT("banned_word_sent")
+        elif message.strip() == "":
+            newMessage.error_text = "MESSAGE CANNOT BE EMPTY"
+            newMessage.value = ""  # Reset the message value
+            newMessage.update()  # Update the message box
+            sleep(5)  # Wait 5 seconds before changing the message box back to normal
+            newMessage.error_text = ""  # Clear out the error text
+            emptyMsg = True
         else:
             standardMessage()
-        print(f"LOG (Message Type: lunaChatMessage) ({lunaUsername.value}): {newMessage.value}")
+        if not emptyMsg:  # If the message was not empty
+            print(f"LOG (Message Type: lunaChatMessage) ({lunaUsername.value}): {newMessage.value}")
         # Log the chat messages to the terminal
         newMessage.value = ""  # Resets the value
         page.update()  # Updates the page

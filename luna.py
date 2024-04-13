@@ -68,6 +68,11 @@ if settings.lunaExperimentalColorOverride:
     dialogMessageBoxColor = ft.colors.WHITE
     pageBackgroundColor = ft.colors.PINK_50
     loginMessageColor = ft.colors.BLACK
+    bannerBackgroundColor = ft.colors.PINK_100
+    bannerTextColor = ft.colors.BLACK
+    bannerIconColor = ft.colors.BLACK
+    bannerButtonColor = ft.colors.PINK_50
+    bannerButtonTextColor = ft.colors.BLACK
 else:
     chatMessageColor = ft.colors.BLUE
     UsernameColor = ft.colors.PINK
@@ -80,6 +85,11 @@ else:
     dialogMessageBoxColor = ft.colors.GREY_800
     pageBackgroundColor = ft.colors.BLACK
     loginMessageColor = ft.colors.WHITE
+    bannerBackgroundColor = ft.colors.PINK_700
+    bannerTextColor = ft.colors.WHITE
+    bannerIconColor = ft.colors.WHITE
+    bannerButtonColor = ft.colors.PINK_100
+    bannerButtonTextColor = ft.colors.PINK
 
 
 class LunaMessage():
@@ -441,11 +451,11 @@ def main(page: ft.Page):
         page.update()
 
     lunaChatDesc = ft.Banner(
-        bgcolor=ft.colors.PINK_700,
+        bgcolor=bannerBackgroundColor,
         leading=ft.Icon(ft.icons.DESCRIPTION, color=ft.colors.WHITE, size=40),
-        content=ft.Text(settings.lunaDescription),
-        actions=[ft.ElevatedButton("Close", on_click=closeDisplayDescription, color=ft.colors.PINK,
-                                   bgcolor=ft.colors.PINK_100)]
+        content=ft.Text(settings.lunaDescription, color=bannerTextColor),
+        actions=[ft.ElevatedButton("Close", on_click=closeDisplayDescription, color=bannerButtonTextColor,
+                                   bgcolor=bannerButtonColor)]
     )  # This is where all the contents of the description banner are defined
 
     # Display the description banner when the user clicks on the icon button
@@ -461,12 +471,12 @@ def main(page: ft.Page):
         page.update()
 
     lunaVersionInfo = ft.Banner(
-        bgcolor=ft.colors.PINK_700,
+        bgcolor=bannerBackgroundColor,
         leading=ft.Icon(ft.icons.INFO, color=ft.colors.WHITE, size=40),
         content=ft.Text(f"Version {currentVersion}", size=20, spans=[ft.TextSpan(
             f"{versionBranch}", ft.TextStyle(size=10, color=titleTextColor))], color=titleTextColor),
-        actions=[ft.ElevatedButton("Close", on_click=closeVersionInfo, color=ft.colors.PINK,
-                                   bgcolor=ft.colors.PINK_100)]
+        actions=[ft.ElevatedButton("Close", on_click=closeVersionInfo, color=bannerButtonTextColor,
+                                   bgcolor=bannerButtonColor)]
     )  # This is where all the contents of the version info banner are defined
 
     # Display the version info banner when the user clicks on the icon button
@@ -477,7 +487,7 @@ def main(page: ft.Page):
 
     # This the bar on the top of the app that contains the title and icon buttons
     page.appbar = ft.AppBar(
-        title=ft.Text(f"{settings.lunaChatName} | lunaChat", size=20, weight=ft.FontWeight.BOLD),
+        title=ft.Text(f"{settings.lunaChatName} | lunaChat", size=20, weight=ft.FontWeight.BOLD, color=titleTextColor),
         center_title=False,
         bgcolor=pageBackgroundColor,
         toolbar_height=40,

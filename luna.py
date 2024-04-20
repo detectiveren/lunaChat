@@ -211,39 +211,6 @@ print("lunaChat instance is ready")
 
 
 def main(page: ft.Page):
-    lunaChat = ft.ListView(
-        expand=True,
-        spacing=10,
-        auto_scroll=True
-    )  # Build the layout of the app
-    newMessage = ft.TextField(
-        hint_text="Type a message...",
-        hint_style=ft.TextStyle(size=15, color=messageTypeColor),
-        color=messageTypeColor,
-        autofocus=True,
-        bgcolor=messageBoxColor,
-        min_lines=1,
-        max_lines=5,
-        filled=True,
-        expand=True,
-    )  # Take input from the Text Fields
-    currentVersion = "1.0"
-    versionBranch = "alpha"
-    buildNumber = "2420"
-    imageFormats = [".png", ".jpg", ".jpeg", ".gif"]  # Supported image formats
-    videoFormats = [".mp4"]
-    lunaUsername = ft.TextField(label="Enter your username", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
-                                label_style=ft.TextStyle(size=15, color=messageTypeColor))
-    lunaServerPassword = ft.TextField(label="Enter password", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
-                                      label_style=ft.TextStyle(size=15, color=messageTypeColor))
-
-    page.title = "lunaChat"
-    page.bgcolor = pageBackgroundColor
-    page.update()
-
-    print(f"LOG receiving anonymous join on lunaChat instance "
-          f"{settings.lunaChatName} ({settings.host}:{settings.port})")
-
     def onLunaMessage(message: LunaMessage):
         if message.lunaMessageType == "lunaChatMessage":  # If the message type is a chat message
             decrypted_message = fernetDecryptMessage(message.lunaText, message.lunaKey)  # Decrypt the message
@@ -269,6 +236,7 @@ def main(page: ft.Page):
 
     page.pubsub.subscribe(onLunaMessage)  # Updates the web clients when there are new messages
 
+    # Function for lunaBOT
     def lunaBOT(message):
         lunaBOTUsername = "lunaBOT"  # lunaBOT's username
         lunaBOTResponse = "Please enter a parameter when invoking the bot"  # lunaBOT's response
@@ -299,6 +267,17 @@ def main(page: ft.Page):
             sendLunaBOTMessage(lunaBOTResponse)
         print(f"LOG (Message Type: lunaChatMessage) (lunaBOT): {lunaBOTResponse} (requested by {lunaUsername.value})")
 
+    # Function for checking if the server password is correct
+    def passwordCheck(e):  # Takes the input from the password textfield and checks if it's the correct password
+        if lunaServerPassword.value == settings.serverPassword:
+            page.session.set("lunaServerPassword", lunaServerPassword.value)
+            page.dialog.open = False
+            loginDialog()  # Calls the login dialog once it has closed the password dialog
+        else:
+            lunaServerPassword.error_text = "INVALID PASSWORD"
+            lunaServerPassword.update()
+
+    # Function for when a user sends a message
     def sendClick(e):
         emptyMsg = False
         # lunaChat.controls.append(ft.Text(newMessage.value))  # Appends the message sent by the user
@@ -393,9 +372,41 @@ def main(page: ft.Page):
                 f.write(f"{lunaUsername.value}\n")  # Append the username to the list
                 f.close()
 
-    def onKeyboard(key: ft.KeyboardEvent):
-        if key.key == "Enter":  # If  the key is the Enter key
-            sendClick(newMessage.value)  # Send the message that was in the text field
+    lunaChat = ft.ListView(
+        expand=True,
+        spacing=10,
+        auto_scroll=True
+    )  # Build the layout of the app
+    newMessage = ft.TextField(
+        hint_text="Type a message...",
+        hint_style=ft.TextStyle(size=15, color=messageTypeColor),
+        color=messageTypeColor,
+        autofocus=True,
+        bgcolor=messageBoxColor,
+        min_lines=1,
+        max_lines=5,
+        filled=True,
+        expand=True,
+        on_submit=sendClick,
+        shift_enter=True,
+    )  # Take input from the Text Fields
+    currentVersion = "1.0"
+    versionBranch = "alpha"
+    buildNumber = "2420"
+    imageFormats = [".png", ".jpg", ".jpeg", ".gif"]  # Supported image formats
+    videoFormats = [".mp4"]
+    lunaUsername = ft.TextField(label="Enter your username", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
+                                label_style=ft.TextStyle(size=15, color=messageTypeColor), on_submit=joinClick)
+    lunaServerPassword = ft.TextField(label="Enter password", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
+                                      label_style=ft.TextStyle(size=15, color=messageTypeColor),
+                                      on_submit=passwordCheck)
+
+    page.title = "lunaChat"
+    page.bgcolor = pageBackgroundColor
+    page.update()
+
+    print(f"LOG receiving anonymous join on lunaChat instance "
+          f"{settings.lunaChatName} ({settings.host}:{settings.port})")
 
     login = ft.AlertDialog(
         open=True,
@@ -412,15 +423,6 @@ def main(page: ft.Page):
         page.dialog = login
         login.open = True
         page.update()
-
-    def passwordCheck(e):  # Takes the input from the password textfield and checks if it's the correct password
-        if lunaServerPassword.value == settings.serverPassword:
-            page.session.set("lunaServerPassword", lunaServerPassword.value)
-            page.dialog.open = False
-            loginDialog()  # Calls the login dialog once it has closed the password dialog
-        else:
-            lunaServerPassword.error_text = "INVALID PASSWORD"
-            lunaServerPassword.update()
 
     passwordDialog = ft.AlertDialog(
         open=True,
@@ -439,7 +441,7 @@ def main(page: ft.Page):
         passwordDialog.open = True
         page.update()
 
-    if settings.serverPasswordRequired:
+    if settings.serverPasswordRequired:  # If the server requires a password open up that dialog
         displayPasswordScreen()
     else:
         loginDialog()
@@ -485,6 +487,57 @@ def main(page: ft.Page):
         lunaVersionInfo.open = True
         page.update()
 
+    def addUsersToList():  # Add users to navigation drawer
+        with open('./config/usernamesInUse.txt') as readUsernames:  # Temporarily using usernamesInUse.txt for this
+            usernamesInUse = readUsernames.readlines()  # Read all the usernames from the textfile into the list
+            usernamesInUse = [line.rstrip('\n') for line in usernamesInUse]
+
+        usernameList = []  # Where the navigation drawer destination for each user will be stored
+
+        for username in usernamesInUse:
+            usernameList.append(ft.NavigationDrawerDestination(
+                icon=ft.icons.ACCOUNT_CIRCLE,
+                label=username
+            ))
+
+        return usernameList
+
+    membersDrawer = ft.NavigationDrawer(  # The theming of the membersDrawer (username list)
+        bgcolor=pageBackgroundColor,
+        indicator_color=None,
+        surface_tint_color=chatMessageColor
+    )
+
+    def showMemberDrawer(e):  # Show the username list once the button is clicked
+        membersDrawer.controls.clear()
+        membersDrawer.selected_index = -1
+        membersDrawer.controls.extend(addUsersToList())
+        page.show_end_drawer(membersDrawer)
+
+    def logOutLunaChat(e):
+        with open('./config/usernamesInUse.txt') as readUsernames:  # Temporarily using usernamesInUse.txt for this
+            usernamesInUse = readUsernames.readlines()  # Read all the usernames from the textfile into the list
+            usernamesInUse = [line.rstrip('\n') for line in usernamesInUse]
+
+        if lunaUsername.value.strip() in usernamesInUse:
+            usernamesInUse.remove(f"{lunaUsername.value.strip()}")  # Free up the username from the list
+            with open('./config/usernamesInUse.txt', "w") as writeUsernames:
+                for username in usernamesInUse:
+                    writeUsernames.write(username + "\n")
+
+        if settings.serverPasswordRequired:  # If the server requires a password open up that dialog
+            displayPasswordScreen()
+        else:
+            loginDialog()
+
+        page.pubsub.send_all(LunaMessage(lunaUser=lunaUsername.value,
+                                         lunaText=f"{lunaUsername.value} has logged out of {settings.lunaChatName}'s "
+                                                  f"lunaChat instance",
+                                         lunaMessageType="lunaLoginMessage", lunaKey=0))
+
+        print(f"LOG (Message Type: lunaLoginMessage) {lunaUsername.value.strip()} has logged out of "
+              f"{settings.lunaChatName}'s lunaChat instance")
+
     # This the bar on the top of the app that contains the title and icon buttons
     page.appbar = ft.AppBar(
         title=ft.Text(f"{settings.lunaChatName} | lunaChat", size=20, weight=ft.FontWeight.BOLD, color=titleTextColor),
@@ -494,22 +547,23 @@ def main(page: ft.Page):
         actions=[
             ft.IconButton(ft.icons.INFO, on_click=openVersionInfo, icon_color=ft.colors.PINK),
             ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription, icon_color=ft.colors.PINK),
-            ft.IconButton(ft.icons.SUPERVISED_USER_CIRCLE, icon_color=ft.colors.PINK)
+            ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.colors.PINK),
+            ft.IconButton(ft.icons.SUPERVISED_USER_CIRCLE, icon_color=ft.colors.PINK, on_click=showMemberDrawer)
         ]
 
     )
 
     # This is where the message container, message box and message button are added onto the app
-    page.add(lunaChat, ft.Row(controls=[newMessage,
-                                        ft.IconButton(
-                                            icon=ft.icons.SEND_ROUNDED,
-                                            bgcolor=ft.colors.PINK_100,
-                                            icon_color=ft.colors.PINK,
-                                            icon_size=40,
-                                            on_click=sendClick
-                                        )])
+    page.add(lunaChat,
+             ft.Row(controls=[newMessage,
+                              ft.IconButton(
+                                  icon=ft.icons.SEND_ROUNDED,
+                                  bgcolor=ft.colors.PINK_100,
+                                  icon_color=ft.colors.PINK,
+                                  icon_size=40,
+                                  on_click=sendClick
+                              )])
              )
-    page.on_keyboard_event = onKeyboard  # Check if there is keyboard input
 
 
 ft.app(main, assets_dir="assets", view=ft.AppView.WEB_BROWSER, host=settings.host, port=settings.port)

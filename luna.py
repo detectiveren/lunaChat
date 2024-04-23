@@ -2,6 +2,7 @@ import flet as ft
 import settings
 from cryptography.fernet import Fernet
 from time import sleep
+import sqlite3
 
 # Resources used to develop the app https://flet.dev/docs/tutorials/python-realtime-chat/#getting-started-with-flet
 # For info on how to deal with keyboard events https://flet.dev/docs/guides/python/keyboard-shortcuts/
@@ -198,6 +199,19 @@ class lunaVideoMessage(ft.Row):
 
             )
         ]
+
+
+def loadDatabase():
+    database_connection = sqlite3.connect('lunaData.db')  # Establish connection to the database
+
+    database_cursor = database_connection.cursor()  # Create the cursor
+
+    database_cursor.execute('SELECT * FROM accounts')  # Get all data from accounts table
+
+    rows = database_cursor.fetchall()  # Catch all the rows from the output
+
+    for row in rows:
+        print(row)
 
 
 print("loaded classes LunaMessage, LunaChatMessage, LunaImageMessage and LunaVideoMessage, message container has been "

@@ -3,6 +3,10 @@ import settings
 from cryptography.fernet import Fernet
 from time import sleep
 import sqlite3
+import system
+import platform
+import os
+
 
 # Resources used to develop the app https://flet.dev/docs/tutorials/python-realtime-chat/#getting-started-with-flet
 # For info on how to deal with keyboard events https://flet.dev/docs/guides/python/keyboard-shortcuts/
@@ -11,6 +15,25 @@ import sqlite3
 # https://flet.dev/docs/controls/page#navigation_bar
 # https://flet.dev/docs/controls/appbar/
 # https://flet.dev/docs/controls/banner/
+
+
+def lunaChatInfo():
+    # This code is a work in progress
+    lunaInfo = system.getLunaChatInfo("Version")
+    lunaPlatformsSupported = system.getLunaChatInfo("Platforms")
+    lunaVersion = lunaInfo[0]
+    lunaBranch = lunaInfo[2]
+    supportedWindowsPlatforms = lunaPlatformsSupported[2][1]
+    if platform.system() == "Windows":
+        if platform.release() < supportedWindowsPlatforms:
+            print(f"This version of Windows is unsupported in lunaChat {lunaVersion}, please upgrade to Windows "
+                  + supportedWindowsPlatforms + " or later")
+            input("Press any key to continue...")
+            exit()
+    return lunaInfo
+
+
+lunaChatInfo()
 
 print(f"lunaChat instance {settings.lunaChatName} started on http://{settings.host}:{settings.port}/")
 

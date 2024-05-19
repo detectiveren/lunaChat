@@ -5,7 +5,6 @@ from time import sleep
 import sqlite3
 import system
 import platform
-import os
 
 
 # Resources used to develop the app https://flet.dev/docs/tutorials/python-realtime-chat/#getting-started-with-flet
@@ -20,10 +19,10 @@ import os
 def lunaChatInfo():
     # This code is a work in progress
     lunaInfo = system.getLunaChatInfo("Version")
-    lunaPlatformsSupported = system.getLunaChatInfo("Platforms")
+    lunaPlatformsSupported = system.getLunaChatInfo("hostPlatforms")
     lunaVersion = lunaInfo[0]
     lunaBranch = lunaInfo[2]
-    supportedWindowsPlatforms = lunaPlatformsSupported[2][1]
+    supportedWindowsPlatforms = lunaPlatformsSupported[0][1]
     if platform.system() == "Windows":
         if platform.release() < supportedWindowsPlatforms:
             print(f"This version of Windows is unsupported in lunaChat {lunaVersion}, please upgrade to Windows "
@@ -427,9 +426,10 @@ def main(page: ft.Page):
         on_submit=sendClick,
         shift_enter=True,
     )  # Take input from the Text Fields
-    currentVersion = "1.0"
-    versionBranch = "alpha"
-    buildNumber = "2420"
+    grabLunaInfo = lunaChatInfo()
+    currentVersion = grabLunaInfo[0]
+    versionBranch = grabLunaInfo[2]
+    buildNumber = grabLunaInfo[3]
     imageFormats = [".png", ".jpg", ".jpeg", ".gif"]  # Supported image formats
     videoFormats = [".mp4"]
     lunaUsername = ft.TextField(label="Enter your username", color=messageTypeColor, bgcolor=dialogMessageBoxColor,

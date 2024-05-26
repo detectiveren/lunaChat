@@ -534,7 +534,7 @@ def main(page: ft.Page):
 
         for username in usernamesInUse:
             usernameList.append(ft.NavigationDrawerDestination(
-                icon=ft.icons.ACCOUNT_CIRCLE,
+                icon_content=ft.Icon(name=ft.icons.ACCOUNT_CIRCLE, color=chatMessageColor),
                 label=username
             ))
             username_count = username_count + 1
@@ -551,7 +551,7 @@ def main(page: ft.Page):
         membersDrawer.controls.clear()
         membersDrawer.selected_index = -1
         getUserList = addUsersToList()
-        membersDrawer.controls.extend([ft.Text(f"        Online - {getUserList[1]} Users Active")])
+        membersDrawer.controls.extend([ft.Text(f"        Online - {getUserList[1]} Users Active", color=chatMessageColor)])
         membersDrawer.controls.extend(getUserList[0])
         #membersDrawer.controls.extend([ft.Text("        Offline")])
         page.show_end_drawer(membersDrawer)

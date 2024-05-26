@@ -1,6 +1,6 @@
 # lunaChat
 [![Python application](https://github.com/detectiveren/lunaChat/actions/workflows/python-app.yml/badge.svg)](https://github.com/detectiveren/lunaChat/actions/workflows/python-app.yml)
-[![Static Badge](https://img.shields.io/badge/v1.0.0%20alpha1-Documentation?style=flat&logo=GitHub&logoColor=white&label=Get&labelColor=black&color=blue)](https://github.com/detectiveren/lunaChat/releases)
+[![Static Badge](https://img.shields.io/badge/v1.0.0%20alpha2-Documentation?style=flat&logo=GitHub&logoColor=white&label=Get&labelColor=black&color=blue)](https://github.com/detectiveren/lunaChat/releases)
 
 
 
@@ -9,9 +9,11 @@ lunaChat is an app that is built on Python and Flet (powered by Flutter), curren
 ## Screenshots
 
 - Light Mode
-![image](https://github.com/detectiveren/lunaChat/assets/55319774/b709a751-0627-465f-8025-6492255d4b68)
+![image](https://github.com/detectiveren/lunaChat/assets/55319774/0ede7391-aa9d-40e1-82a8-653cde2cb741)
+
 - Dark Mode
-![image](https://github.com/detectiveren/lunaChat/assets/55319774/21e9ba89-878b-4c88-bda5-b54b267e0788)
+![image](https://github.com/detectiveren/lunaChat/assets/55319774/9a6de153-6102-4978-bf58-4cc6bdb452e2)
+
 
 
 

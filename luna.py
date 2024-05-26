@@ -525,6 +525,7 @@ def main(page: ft.Page):
         page.update()
 
     def addUsersToList():  # Add users to navigation drawer
+        username_count = 0
         with open('./config/usernamesInUse.txt') as readUsernames:  # Temporarily using usernamesInUse.txt for this
             usernamesInUse = readUsernames.readlines()  # Read all the usernames from the textfile into the list
             usernamesInUse = [line.rstrip('\n') for line in usernamesInUse]
@@ -536,19 +537,23 @@ def main(page: ft.Page):
                 icon=ft.icons.ACCOUNT_CIRCLE,
                 label=username
             ))
+            username_count = username_count + 1
 
-        return usernameList
+        return usernameList, username_count
 
     membersDrawer = ft.NavigationDrawer(  # The theming of the membersDrawer (username list)
         bgcolor=pageBackgroundColor,
         indicator_color=None,
-        surface_tint_color=chatMessageColor
+        surface_tint_color=chatMessageColor,
     )
 
     def showMemberDrawer(e):  # Show the username list once the button is clicked
         membersDrawer.controls.clear()
         membersDrawer.selected_index = -1
-        membersDrawer.controls.extend(addUsersToList())
+        getUserList = addUsersToList()
+        membersDrawer.controls.extend([ft.Text(f"        Online - {getUserList[1]} Users Active")])
+        membersDrawer.controls.extend(getUserList[0])
+        #membersDrawer.controls.extend([ft.Text("        Offline")])
         page.show_end_drawer(membersDrawer)
 
     def logOutLunaChat(e):

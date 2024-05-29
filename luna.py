@@ -247,6 +247,13 @@ print("lunaChat instance is ready")
 
 
 def main(page: ft.Page):
+    if settings.lunaExperimentalColorOverride:
+        page.theme_mode = 'light'
+        page.update()
+    else:
+        page.theme_mode = 'dark'
+        page.update()
+
     def onLunaMessage(message: LunaMessage):
         if message.lunaMessageType == "lunaChatMessage":  # If the message type is a chat message
             decrypted_message = fernetDecryptMessage(message.lunaText, message.lunaKey)  # Decrypt the message
@@ -551,9 +558,10 @@ def main(page: ft.Page):
         membersDrawer.controls.clear()
         membersDrawer.selected_index = -1
         getUserList = addUsersToList()
-        membersDrawer.controls.extend([ft.Text(f"        Online - {getUserList[1]} Users Active", color=chatMessageColor)])
+        membersDrawer.controls.extend(
+            [ft.Text(f"        Online - {getUserList[1]} Users Active", color=chatMessageColor)])
         membersDrawer.controls.extend(getUserList[0])
-        #membersDrawer.controls.extend([ft.Text("        Offline")])
+        # membersDrawer.controls.extend([ft.Text("        Offline")])
         page.show_end_drawer(membersDrawer)
 
     def logOutLunaChat(e):

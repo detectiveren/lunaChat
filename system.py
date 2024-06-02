@@ -23,7 +23,7 @@ branches = [
 ]
 
 lunaChatInfo = {
-    "Version": systemInfo("1.0", "Andromeda", f"{branches[0]}", "2420"),
+    "Version": systemInfo("1.0", "Andromeda", f"{branches[0]}", "2495"),
     "releaseDate": None,
     "hostPlatforms": [
         platforms("Windows", "11", "NT"),

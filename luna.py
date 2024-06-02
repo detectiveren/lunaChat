@@ -580,13 +580,15 @@ def main(page: ft.Page):
         else:
             loginDialog()
 
-        page.pubsub.send_all(LunaMessage(lunaUser=lunaUsername.value,
-                                         lunaText=f"{lunaUsername.value} has logged out of {settings.lunaChatName}'s "
-                                                  f"lunaChat instance",
-                                         lunaMessageType="lunaLoginMessage", lunaKey=0))
+        if lunaUsername.value != "":
 
-        print(f"LOG (Message Type: lunaLoginMessage) {lunaUsername.value.strip()} has logged out of "
-              f"{settings.lunaChatName}'s lunaChat instance")
+            page.pubsub.send_all(LunaMessage(lunaUser=lunaUsername.value,
+                                            lunaText=f"{lunaUsername.value} has logged out of {settings.lunaChatName}'s "
+                                                    f"lunaChat instance",
+                                            lunaMessageType="lunaLoginMessage", lunaKey=0))
+
+            print(f"LOG (Message Type: lunaLoginMessage) {lunaUsername.value.strip()} has logged out of "
+                f"{settings.lunaChatName}'s lunaChat instance")
 
     # This the bar on the top of the app that contains the title and icon buttons
     page.appbar = ft.AppBar(
@@ -614,6 +616,15 @@ def main(page: ft.Page):
                                   on_click=sendClick
                               )])
              )
+
+    def onDisconnect(e: ft.PageDisconnectedException):
+        try:
+            logOutLunaChat("")
+        except:
+            print("User wasn't logged in")
+
+
+    page.on_disconnect = onDisconnect
 
 
 ft.app(main, assets_dir="assets", view=ft.AppView.WEB_BROWSER, host=settings.host, port=settings.port)

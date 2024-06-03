@@ -6,6 +6,7 @@ lunaDescription = "This is a lunaChat instance!"
 serverPasswordRequired = False
 serverPassword = "server_password_here"
 displayServerAddressOnLogin = True
+enableAccounts = False
 # Flags
 lunaExperimentalColorOverride = False
 

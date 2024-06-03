@@ -137,7 +137,7 @@ class lunaChatMessage(ft.Row):
                 [
                     ft.Text(message.lunaUser, color=UsernameColor),
                     # The username that will pop up in the message container
-                    ft.Text(message.lunaText, selectable=True, color=chatMessageColor)
+                    ft.Text(message.lunaText, selectable=True)
                     # The message that will pop up in the message container
                 ],
                 tight=True,
@@ -235,6 +235,9 @@ def loadDatabase():
     for row in rows:
         print(row)
 
+
+if settings.enableAccounts:
+    loadDatabase()
 
 print("loaded classes LunaMessage, LunaChatMessage, LunaImageMessage and LunaVideoMessage, message container has been "
       "created")
@@ -380,9 +383,11 @@ def main(page: ft.Page):
         if not lunaUsername.value:
             lunaUsername.error_text = "USERNAME CANNOT BE BLANK"
             lunaUsername.update()
+            lunaUsername.value = ""
         elif "lunaBOT" in lunaUsername.value:  # If the user input is lunaBOT it will return an error
             lunaUsername.error_text = "USERNAME INVALID"
             lunaUsername.update()
+            lunaUsername.value = ""
             print("LOG (Login System) Anonymous user tried to log in but the username was invalid")
         elif lunaUsername.value.strip() in usernamesInUse:
             # If the username is found in the usernamesInUse list then the username is in use
@@ -390,11 +395,13 @@ def main(page: ft.Page):
             lunaUsername.update()
             print(f"LOG (Login System) Anonymous user tried to log in with the username {lunaUsername.value.strip()}"
                   f" but it was already in use")
+            lunaUsername.value = ""
         elif lunaUsername.value.strip() in bannedUsername:
             lunaUsername.error_text = "USERNAME IS BANNED"
             lunaUsername.update()
             print(f"LOG (Login System) Anonymous user tried to log in with the username {lunaUsername.value.strip()}"
                   f" but the username is banned")
+            lunaUsername.value = ""
         else:
             page.session.set("lunaUsername", lunaUsername.value)  # Takes in the username value that was entered
             page.dialog.open = False
@@ -441,9 +448,12 @@ def main(page: ft.Page):
     videoFormats = [".mp4"]
     lunaUsername = ft.TextField(label="Enter your username", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
                                 label_style=ft.TextStyle(size=15, color=messageTypeColor), on_submit=joinClick)
+    lunaPassword = ft.TextField(label="Enter your password", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
+                                label_style=ft.TextStyle(size=15, color=messageTypeColor), on_submit=joinClick, password=True,
+                                can_reveal_password=True)
     lunaServerPassword = ft.TextField(label="Enter password", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
                                       label_style=ft.TextStyle(size=15, color=messageTypeColor),
-                                      on_submit=passwordCheck)
+                                      on_submit=passwordCheck, password=True, can_reveal_password=True)
 
     page.title = "lunaChat"
     page.bgcolor = pageBackgroundColor
@@ -458,10 +468,21 @@ def main(page: ft.Page):
         bgcolor=dialogColor,
         title=ft.Text("Welcome to lunaChat!", color=titleTextColor),
         content=ft.Column([lunaUsername], tight=True),
-        actions=[ft.ElevatedButton(text="Join lunaChat", on_click=joinClick, color=ft.colors.PINK,
+        actions=[ft.ElevatedButton(text="Login to lunaChat", on_click=joinClick, color=ft.colors.PINK,
                                    bgcolor=dialogButtonColor)],
         actions_alignment="end",
     )  # Opens the alert dialog welcoming the user to lunaChat and takes the input from the user which is the username
+
+    register = ft.AlertDialog(
+        open=True,
+        modal=True,
+        bgcolor=dialogColor,
+        title=ft.Text("Register an account on lunaChat!", color=titleTextColor),
+        content=ft.Column([lunaUsername, lunaPassword], tight=True),
+        actions=[ft.ElevatedButton(text="Join lunaChat", on_click=joinClick, color=ft.colors.PINK,
+                                   bgcolor=dialogButtonColor)],
+        actions_alignment="end",
+    )
 
     def loginDialog():  # Display the login alert dialog
         page.dialog = login

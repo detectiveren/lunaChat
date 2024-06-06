@@ -323,6 +323,45 @@ def main(page: ft.Page):
             lunaServerPassword.error_text = "INVALID PASSWORD"
             lunaServerPassword.update()
 
+    def createLunaChatAccount(e):
+        if not lunaUsername.value or not lunaPassword.value:
+            if not lunaUsername.value:
+                lunaUsername.error_text = "Please enter a valid username"
+                lunaUsername.update()
+            if not lunaPassword.value:
+                lunaPassword.error_text = "Please enter a valid password"
+                lunaPassword.update()
+        else:
+            lunaUsername.error_text = ""
+            lunaUsername.update()
+            lunaPassword.error_text = ""
+            lunaPassword.update()
+            conn = sqlite3.connect('lunaData.db')
+
+            cursor = conn.cursor()
+
+            # Add the account to the records
+            try:
+                # Check if the username is unique
+                cursor.execute("SELECT id FROM accounts WHERE username = ?", (lunaUsername.value,))
+                result = cursor.fetchone()
+
+                if result:
+                    lunaUsername.error_text = "Username already exists"
+                    lunaUsername.update()
+                else:
+                    lunaUsername.error_text = ""
+                    lunaUsername.update()
+                    # Insert the new account without specifying the ID
+                    cursor.execute("INSERT INTO accounts (username, password) VALUES (?, ?)", (lunaUsername.value, lunaPassword.value))
+                    conn.commit()
+                    print("Account added successfully with ID:", cursor.lastrowid)
+            except sqlite3.Error as e:
+                print("Error:", e)
+            finally:
+                # Close the connection
+                conn.close()
+
     def backToLoginHub(e):
         page.dialog.open = False
         displayLoginHub()
@@ -482,7 +521,7 @@ def main(page: ft.Page):
         title=ft.Text("Welcome to lunaChat!", color=titleTextColor),
         content=ft.Column([lunaUsername], tight=True),
         actions=[ft.ElevatedButton(text="Back", on_click=backToLoginHub, color=ft.colors.PINK,
-                                    bgcolor=dialogButtonColor),
+                                   bgcolor=dialogButtonColor),
                  ft.ElevatedButton(text="Login to lunaChat", on_click=joinClick, color=ft.colors.PINK,
                                    bgcolor=dialogButtonColor)],
         actions_alignment="end",
@@ -496,7 +535,7 @@ def main(page: ft.Page):
         content=ft.Column([lunaUsername, lunaPassword], tight=True),
         actions=[ft.ElevatedButton(text="Back", on_click=backToLoginHub, color=ft.colors.PINK,
                                    bgcolor=dialogButtonColor),
-                 ft.ElevatedButton(text="Join lunaChat", on_click=joinClick, color=ft.colors.PINK,
+                 ft.ElevatedButton(text="Join lunaChat", on_click=createLunaChatAccount, color=ft.colors.PINK,
                                    bgcolor=dialogButtonColor)],
         actions_alignment="end",
     )

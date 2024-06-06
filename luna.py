@@ -236,7 +236,7 @@ def loadDatabase():
         print(row)
 
 
-if settings.enableAccounts:
+if settings.enableAccountCreation:
     loadDatabase()
 
 print("loaded classes LunaMessage, LunaChatMessage, LunaImageMessage and LunaVideoMessage, message container has been "
@@ -353,7 +353,7 @@ def main(page: ft.Page):
                     lunaUsername.error_text = ""
                     lunaUsername.update()
                     # Insert the new account without specifying the ID
-                    cursor.execute("INSERT INTO accounts (username, password) VALUES (?, ?)", (lunaUsername.value, lunaPassword.value))
+                    cursor.execute("INSERT INTO accounts (username, password, status) VALUES (?, ?, ?)", (lunaUsername.value, lunaPassword.value, 0))
                     conn.commit()
                     print("Account added successfully with ID:", cursor.lastrowid)
             except sqlite3.Error as e:
@@ -454,24 +454,48 @@ def main(page: ft.Page):
                   f" but the username is banned")
             lunaUsername.value = ""
         else:
-            page.session.set("lunaUsername", lunaUsername.value)  # Takes in the username value that was entered
-            page.dialog.open = False
-            if settings.displayServerAddressOnLogin:  # If the value is true then display the server address and port
-                page.pubsub.send_all(LunaMessage(lunaUser=lunaUsername.value,
-                                                 lunaText=f"{lunaUsername.value} has joined {settings.lunaChatName}'s lunaChat instance "
-                                                          f"({settings.host}:{settings.port})",
-                                                 lunaMessageType="lunaLoginMessage", lunaKey=0))
-            else:
-                page.pubsub.send_all(LunaMessage(lunaUser=lunaUsername.value,
-                                                 lunaText=f"{lunaUsername.value} has joined {settings.lunaChatName}'s lunaChat instance",
-                                                 lunaMessageType="lunaLoginMessage", lunaKey=0))
-            print(f"LOG (Message Type: lunaLoginMessage) ({lunaUsername.value}) has joined {settings.lunaChatName}'s "
-                  f"lunaChat instance ({settings.host}:{settings.port})")
-            # Display the login message in the terminal
+            conn = sqlite3.connect('lunaData.db')
+            cursor = conn.cursor()
 
-            with open('./config/usernamesInUse.txt', 'a') as f:
-                f.write(f"{lunaUsername.value}\n")  # Append the username to the list
-                f.close()
+            try:
+                # Check if the username and password match an existing account
+                cursor.execute("SELECT id FROM accounts WHERE username = ? AND password = ?",
+                               (lunaUsername.value, lunaPassword.value))
+                result = cursor.fetchone()
+
+                if result:
+                    print("Login successful")
+                    # Optionally, you can update the UI to reflect the successful login
+                    # Add your post-login logic here (e.g., redirect to chat interface)
+                    page.session.set("lunaUsername", lunaUsername.value)  # Takes in the username value that was entered
+                    page.dialog.open = False
+                    if settings.displayServerAddressOnLogin:  # If the value is true then display the server address and port
+                        page.pubsub.send_all(LunaMessage(lunaUser=lunaUsername.value,
+                                                         lunaText=f"{lunaUsername.value} has joined {settings.lunaChatName}'s lunaChat instance "
+                                                                  f"({settings.host}:{settings.port})",
+                                                         lunaMessageType="lunaLoginMessage", lunaKey=0))
+                    else:
+                        page.pubsub.send_all(LunaMessage(lunaUser=lunaUsername.value,
+                                                         lunaText=f"{lunaUsername.value} has joined {settings.lunaChatName}'s lunaChat instance",
+                                                         lunaMessageType="lunaLoginMessage", lunaKey=0))
+                    print(
+                        f"LOG (Message Type: lunaLoginMessage) ({lunaUsername.value}) has joined {settings.lunaChatName}'s "
+                        f"lunaChat instance ({settings.host}:{settings.port})")
+                    # Display the login message in the terminal
+
+                    with open('./config/usernamesInUse.txt', 'a') as f:
+                        f.write(f"{lunaUsername.value}\n")  # Append the username to the list
+                        f.close()
+                else:
+                    lunaUsername.error_text = "Invalid username or password"
+                    lunaUsername.update()
+                    lunaPassword.error_text = "Invalid username or password"
+                    lunaPassword.update()
+            except sqlite3.Error as e:
+                print("Error:", e)
+            finally:
+                # Close the connection
+                conn.close()
 
     lunaChat = ft.ListView(
         expand=True,
@@ -519,7 +543,7 @@ def main(page: ft.Page):
         modal=True,
         bgcolor=dialogColor,
         title=ft.Text("Welcome to lunaChat!", color=titleTextColor),
-        content=ft.Column([lunaUsername], tight=True),
+        content=ft.Column([lunaUsername, lunaPassword], tight=True),
         actions=[ft.ElevatedButton(text="Back", on_click=backToLoginHub, color=ft.colors.PINK,
                                    bgcolor=dialogButtonColor),
                  ft.ElevatedButton(text="Login to lunaChat", on_click=joinClick, color=ft.colors.PINK,

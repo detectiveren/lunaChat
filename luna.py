@@ -318,10 +318,22 @@ def main(page: ft.Page):
         if lunaServerPassword.value == settings.serverPassword:
             page.session.set("lunaServerPassword", lunaServerPassword.value)
             page.dialog.open = False
-            loginDialog()  # Calls the login dialog once it has closed the password dialog
+            displayLoginHub()  # Calls the login dialog once it has closed the password dialog
         else:
             lunaServerPassword.error_text = "INVALID PASSWORD"
             lunaServerPassword.update()
+
+    def backToLoginHub(e):
+        page.dialog.open = False
+        displayLoginHub()
+
+    def loginMenu(e):
+        page.dialog.open = False
+        loginDialog()
+
+    def registerMenu(e):
+        page.dialog.open = False
+        registerDialog()
 
     # Function for when a user sends a message
     def sendClick(e):
@@ -449,7 +461,8 @@ def main(page: ft.Page):
     lunaUsername = ft.TextField(label="Enter your username", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
                                 label_style=ft.TextStyle(size=15, color=messageTypeColor), on_submit=joinClick)
     lunaPassword = ft.TextField(label="Enter your password", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
-                                label_style=ft.TextStyle(size=15, color=messageTypeColor), on_submit=joinClick, password=True,
+                                label_style=ft.TextStyle(size=15, color=messageTypeColor), on_submit=joinClick,
+                                password=True,
                                 can_reveal_password=True)
     lunaServerPassword = ft.TextField(label="Enter password", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
                                       label_style=ft.TextStyle(size=15, color=messageTypeColor),
@@ -468,7 +481,9 @@ def main(page: ft.Page):
         bgcolor=dialogColor,
         title=ft.Text("Welcome to lunaChat!", color=titleTextColor),
         content=ft.Column([lunaUsername], tight=True),
-        actions=[ft.ElevatedButton(text="Login to lunaChat", on_click=joinClick, color=ft.colors.PINK,
+        actions=[ft.ElevatedButton(text="Back", on_click=backToLoginHub, color=ft.colors.PINK,
+                                    bgcolor=dialogButtonColor),
+                 ft.ElevatedButton(text="Login to lunaChat", on_click=joinClick, color=ft.colors.PINK,
                                    bgcolor=dialogButtonColor)],
         actions_alignment="end",
     )  # Opens the alert dialog welcoming the user to lunaChat and takes the input from the user which is the username
@@ -479,7 +494,21 @@ def main(page: ft.Page):
         bgcolor=dialogColor,
         title=ft.Text("Register an account on lunaChat!", color=titleTextColor),
         content=ft.Column([lunaUsername, lunaPassword], tight=True),
-        actions=[ft.ElevatedButton(text="Join lunaChat", on_click=joinClick, color=ft.colors.PINK,
+        actions=[ft.ElevatedButton(text="Back", on_click=backToLoginHub, color=ft.colors.PINK,
+                                   bgcolor=dialogButtonColor),
+                 ft.ElevatedButton(text="Join lunaChat", on_click=joinClick, color=ft.colors.PINK,
+                                   bgcolor=dialogButtonColor)],
+        actions_alignment="end",
+    )
+
+    menu = ft.AlertDialog(
+        open=True,
+        modal=True,
+        bgcolor=dialogColor,
+        title=ft.Text("lunaChat Login Hub", color=titleTextColor),
+        actions=[ft.ElevatedButton(text="Login to lunaChat", on_click=loginMenu, color=ft.colors.PINK,
+                                   bgcolor=dialogButtonColor),
+                 ft.ElevatedButton(text="Register on lunaChat", on_click=registerMenu, color=ft.colors.PINK,
                                    bgcolor=dialogButtonColor)],
         actions_alignment="end",
     )
@@ -501,6 +530,16 @@ def main(page: ft.Page):
 
     )
 
+    def registerDialog():
+        page.dialog = register
+        register.open = True
+        page.update()
+
+    def displayLoginHub():
+        page.dialog = menu
+        menu.open = True
+        page.update()
+
     def displayPasswordScreen():  # Display the password alert dialog
         page.dialog = passwordDialog
         passwordDialog.open = True
@@ -509,7 +548,7 @@ def main(page: ft.Page):
     if settings.serverPasswordRequired:  # If the server requires a password open up that dialog
         displayPasswordScreen()
     else:
-        loginDialog()
+        displayLoginHub()
 
     # Close the description banner when the user clicks on the close button
     def closeDisplayDescription(e):
@@ -596,20 +635,21 @@ def main(page: ft.Page):
                 for username in usernamesInUse:
                     writeUsernames.write(username + "\n")
 
+            if lunaUsername.value != "":
+                page.pubsub.send_all(LunaMessage(lunaUser=lunaUsername.value,
+                                                 lunaText=f"{lunaUsername.value} has logged out of {settings.lunaChatName}'s "
+                                                          f"lunaChat instance",
+                                                 lunaMessageType="lunaLoginMessage", lunaKey=0))
+
+                print(f"LOG (Message Type: lunaLoginMessage) {lunaUsername.value.strip()} has logged out of "
+                      f"{settings.lunaChatName}'s lunaChat instance")
+
         if settings.serverPasswordRequired:  # If the server requires a password open up that dialog
             displayPasswordScreen()
         else:
-            loginDialog()
+            displayLoginHub()
 
-        if lunaUsername.value != "":
-
-            page.pubsub.send_all(LunaMessage(lunaUser=lunaUsername.value,
-                                            lunaText=f"{lunaUsername.value} has logged out of {settings.lunaChatName}'s "
-                                                    f"lunaChat instance",
-                                            lunaMessageType="lunaLoginMessage", lunaKey=0))
-
-            print(f"LOG (Message Type: lunaLoginMessage) {lunaUsername.value.strip()} has logged out of "
-                f"{settings.lunaChatName}'s lunaChat instance")
+        lunaUsername.value = ""
 
     # This the bar on the top of the app that contains the title and icon buttons
     page.appbar = ft.AppBar(
@@ -643,7 +683,6 @@ def main(page: ft.Page):
             logOutLunaChat("")
         except:
             print("User wasn't logged in")
-
 
     page.on_disconnect = onDisconnect
 

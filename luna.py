@@ -356,6 +356,7 @@ def main(page: ft.Page):
                     cursor.execute("INSERT INTO accounts (username, password, status) VALUES (?, ?, ?)", (lunaUsername.value, lunaPassword.value, 0))
                     conn.commit()
                     print("Account added successfully with ID:", cursor.lastrowid)
+                    accountCreatedSuccessfullyScreen()
             except sqlite3.Error as e:
                 print("Error:", e)
             finally:
@@ -373,6 +374,10 @@ def main(page: ft.Page):
     def registerMenu(e):
         page.dialog.open = False
         registerDialog()
+
+    def accountCreatedSuccessfullyScreen():
+        page.dialog.open = False
+        displayAccountCreated()
 
     # Function for when a user sends a message
     def sendClick(e):
@@ -576,6 +581,16 @@ def main(page: ft.Page):
         actions_alignment="end",
     )
 
+    accountCreated = ft.AlertDialog(
+        open=True,
+        modal=True,
+        bgcolor=dialogColor,
+        title=ft.Text("Account Created Successfully", color=titleTextColor),
+        actions=[ft.ElevatedButton(text="Back", on_click=backToLoginHub, color=ft.colors.PINK,
+                                   bgcolor=dialogButtonColor)],
+        actions_alignment="end",
+    )
+
     def loginDialog():  # Display the login alert dialog
         page.dialog = login
         login.open = True
@@ -601,6 +616,11 @@ def main(page: ft.Page):
     def displayLoginHub():
         page.dialog = menu
         menu.open = True
+        page.update()
+
+    def displayAccountCreated():
+        page.dialog = accountCreated
+        accountCreated.open = True
         page.update()
 
     def displayPasswordScreen():  # Display the password alert dialog

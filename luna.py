@@ -318,7 +318,10 @@ def main(page: ft.Page):
         if lunaServerPassword.value == settings.serverPassword:
             page.session.set("lunaServerPassword", lunaServerPassword.value)
             page.dialog.open = False
-            displayLoginHub()  # Calls the login dialog once it has closed the password dialog
+            if settings.enableAccountCreation:  # Calls the login dialog once it has closed the password dialog
+                displayLoginHub()
+            else:
+                displayLoginHubRegisterDisabled()
         else:
             lunaServerPassword.error_text = "INVALID PASSWORD"
             lunaServerPassword.update()
@@ -340,6 +343,8 @@ def main(page: ft.Page):
 
             cursor = conn.cursor()
 
+            lunaUsername.value = lunaUsername.value.strip()
+
             # Add the account to the records
             try:
                 # Check if the username is unique
@@ -353,7 +358,8 @@ def main(page: ft.Page):
                     lunaUsername.error_text = ""
                     lunaUsername.update()
                     # Insert the new account without specifying the ID
-                    cursor.execute("INSERT INTO accounts (username, password, status) VALUES (?, ?, ?)", (lunaUsername.value, lunaPassword.value, 0))
+                    cursor.execute("INSERT INTO accounts (username, password, status) VALUES (?, ?, ?)",
+                                   (lunaUsername.value, lunaPassword.value, 0))
                     conn.commit()
                     print("Account added successfully with ID:", cursor.lastrowid)
                     accountCreatedSuccessfullyScreen()
@@ -365,7 +371,10 @@ def main(page: ft.Page):
 
     def backToLoginHub(e):
         page.dialog.open = False
-        displayLoginHub()
+        if settings.enableAccountCreation:
+            displayLoginHub()
+        else:
+            displayLoginHubRegisterDisabled()
 
     def loginMenu(e):
         page.dialog.open = False
@@ -574,9 +583,21 @@ def main(page: ft.Page):
         modal=True,
         bgcolor=dialogColor,
         title=ft.Text("lunaChat Login Hub", color=titleTextColor),
+        content=ft.Text(settings.lunaLoginMessage),
         actions=[ft.ElevatedButton(text="Login to lunaChat", on_click=loginMenu, color=ft.colors.PINK,
                                    bgcolor=dialogButtonColor),
                  ft.ElevatedButton(text="Register on lunaChat", on_click=registerMenu, color=ft.colors.PINK,
+                                   bgcolor=dialogButtonColor)],
+        actions_alignment="end",
+    )
+
+    menuAccountRegisterDisabled = ft.AlertDialog(
+        open=True,
+        modal=True,
+        bgcolor=dialogColor,
+        title=ft.Text("lunaChat Login Hub", color=titleTextColor),
+        content=ft.Text(settings.lunaLoginMessage),
+        actions=[ft.ElevatedButton(text="Login to lunaChat", on_click=loginMenu, color=ft.colors.PINK,
                                    bgcolor=dialogButtonColor)],
         actions_alignment="end",
     )
@@ -618,6 +639,11 @@ def main(page: ft.Page):
         menu.open = True
         page.update()
 
+    def displayLoginHubRegisterDisabled():
+        page.dialog = menuAccountRegisterDisabled
+        menuAccountRegisterDisabled.open = True
+        page.update()
+
     def displayAccountCreated():
         page.dialog = accountCreated
         accountCreated.open = True
@@ -631,7 +657,10 @@ def main(page: ft.Page):
     if settings.serverPasswordRequired:  # If the server requires a password open up that dialog
         displayPasswordScreen()
     else:
-        displayLoginHub()
+        if settings.enableAccountCreation:
+            displayLoginHub()
+        else:
+            displayLoginHubRegisterDisabled()
 
     # Close the description banner when the user clicks on the close button
     def closeDisplayDescription(e):
@@ -730,7 +759,10 @@ def main(page: ft.Page):
         if settings.serverPasswordRequired:  # If the server requires a password open up that dialog
             displayPasswordScreen()
         else:
-            displayLoginHub()
+            if settings.enableAccountCreation:
+                displayLoginHub()
+            else:
+                displayLoginHubRegisterDisabled()
 
         lunaUsername.value = ""
 

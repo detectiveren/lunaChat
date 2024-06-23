@@ -659,6 +659,7 @@ def main(page: ft.Page):
         displayPasswordScreen()
     else:
         if settings.enableAccountCreation:
+            page.go('/')
             displayLoginHub()
         else:
             displayLoginHubRegisterDisabled()
@@ -738,6 +739,7 @@ def main(page: ft.Page):
         page.show_end_drawer(membersDrawer)
 
     def logOutLunaChat(e):
+        page.go('/')
         with open('./config/usernamesInUse.txt') as readUsernames:  # Temporarily using usernamesInUse.txt for this
             usernamesInUse = readUsernames.readlines()  # Read all the usernames from the textfile into the list
             usernamesInUse = [line.rstrip('\n') for line in usernamesInUse]
@@ -766,7 +768,7 @@ def main(page: ft.Page):
                 displayLoginHubRegisterDisabled()
 
         lunaUsername.value = ""
-        page.go('/')
+        lunaPassword.value = ""
 
     # This the bar on the top of the app that contains the title and icon buttons
     # page.appbar = ft.AppBar(
@@ -824,82 +826,94 @@ def main(page: ft.Page):
             )
         )
 
-        if page.route == f"/profile/{lunaUsername.value}":
-            page.views.append(
-                ft.View(
-                    f"/profile/{lunaUsername.value}",
-                    [
-                        ft.AppBar(
-                            title=ft.Text(f"{lunaUsername.value}'s Profile | lunaChat", size=20,
-                                          weight=ft.FontWeight.BOLD,
-                                          color=titleTextColor),
-                            center_title=False,
-                            bgcolor=pageBackgroundColor,
-                            toolbar_height=40,
-                            actions=[
-                                ft.IconButton(ft.icons.INFO, on_click=openVersionInfo, icon_color=ft.colors.PINK),
-                                ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription,
-                                              icon_color=ft.colors.PINK),
-                                ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.colors.PINK),
-                                ft.IconButton(ft.icons.ACCOUNT_CIRCLE, icon_color=ft.colors.PINK,
-                                              on_click=lambda _: page.go("/chat"))
-                            ]),
-                        ft.Container(
-                            content=ft.Row(controls=[
-                                ft.Column(controls=[
-                                    ft.Text("Profile Information"),
-                                    ft.Row(controls=[
-                                        ft.CircleAvatar(  # The avatar that will pop up in the message container
-                                            content=ft.Text(getInitials(lunaUsername.value)),
-                                            color=ft.colors.WHITE,
-                                            bgcolor=getAvatarColor(lunaUsername.value)),
-                                        ft.Text(f"{lunaUsername.value}")
-                                    ]),
+        if page.route == "/profile":
+            page.go(f'/profile/{lunaUsername.value}')
 
+        if page.route == f"/profile/{lunaUsername.value}":
+            if lunaUsername.value == "":
+                page.go('/')
+            else:
+                page.views.append(
+                    ft.View(
+                        f"/profile/{lunaUsername.value}",
+                        [
+                            ft.AppBar(
+                                title=ft.Text(f"{lunaUsername.value}'s Profile | lunaChat", size=20,
+                                            weight=ft.FontWeight.BOLD,
+                                            color=titleTextColor),
+                                automatically_imply_leading=False,
+                                center_title=False,
+                                bgcolor=pageBackgroundColor,
+                                toolbar_height=40,
+                                actions=[
+                                    ft.IconButton(ft.icons.INFO, on_click=openVersionInfo, icon_color=ft.colors.PINK),
+                                    ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription,
+                                                icon_color=ft.colors.PINK),
+                                    ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.colors.PINK),
+                                    ft.IconButton(ft.icons.ACCOUNT_CIRCLE, icon_color=ft.colors.PINK,
+                                                on_click=lambda _: page.go("/chat"))
                                 ]),
-                            ])
-                        )
-                    ],
-                    bgcolor=pageBackgroundColor
+                            ft.Container(
+                                content=ft.Row(controls=[
+                                    ft.Column(controls=[
+                                        ft.Text("Profile Information"),
+                                        ft.Row(controls=[
+                                            ft.CircleAvatar(  # The avatar that will pop up in the message container
+                                                content=ft.Text(getInitials(lunaUsername.value)),
+                                                color=ft.colors.WHITE,
+                                                bgcolor=getAvatarColor(lunaUsername.value)),
+                                            ft.Text(f"{lunaUsername.value}"),
+                                        ]),
+                                        ft.Text("            Online", color=ft.colors.BLUE),
+                                        ft.Text("            Status: ")
+
+                                    ]),
+                                ])
+                            )
+                        ],
+                        bgcolor=pageBackgroundColor
+                    )
                 )
-            )
 
         if page.route == "/chat":
-            page.views.append(
-                ft.View(
-                    "/chat",
-                    [
-                        ft.AppBar(
-                            title=ft.Text(f"{settings.lunaChatName} | lunaChat", size=20, weight=ft.FontWeight.BOLD,
+            if lunaUsername.value == "":
+                page.go('/')
+            else:
+                page.views.append(
+                    ft.View(
+                        "/chat",
+                        [
+                            ft.AppBar(
+                                title=ft.Text(f"{settings.lunaChatName} | lunaChat", size=20, weight=ft.FontWeight.BOLD,
                                           color=titleTextColor),
-                            center_title=False,
-                            bgcolor=pageBackgroundColor,
-                            toolbar_height=40,
-                            actions=[
-                                ft.IconButton(ft.icons.INFO, on_click=openVersionInfo, icon_color=ft.colors.PINK),
-                                ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription,
-                                              icon_color=ft.colors.PINK),
-                                ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.colors.PINK),
-                                ft.IconButton(ft.icons.ACCOUNT_CIRCLE, icon_color=ft.colors.PINK,
-                                              on_click=lambda _: page.go(f"/profile/{lunaUsername.value}"))
-                            ],
-                            automatically_imply_leading=False
-                        ),
-                        lunaChat,
-                        ft.Row(controls=[newMessage,
-                                         ft.IconButton(
-                                             icon=ft.icons.SEND_ROUNDED,
-                                             bgcolor=ft.colors.PINK_100,
-                                             icon_color=ft.colors.PINK,
-                                             icon_size=40,
-                                             on_click=sendClick
-                                         )])
+                                center_title=False,
+                                bgcolor=pageBackgroundColor,
+                                toolbar_height=40,
+                                actions=[
+                                    ft.IconButton(ft.icons.INFO, on_click=openVersionInfo, icon_color=ft.colors.PINK),
+                                    ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription,
+                                                  icon_color=ft.colors.PINK),
+                                    ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.colors.PINK),
+                                    ft.IconButton(ft.icons.ACCOUNT_CIRCLE, icon_color=ft.colors.PINK,
+                                                on_click=lambda _: page.go(f"/profile/{lunaUsername.value}"))
+                                ],
+                                automatically_imply_leading=False
+                            ),
+                            lunaChat,
+                            ft.Row(controls=[newMessage,
+                                            ft.IconButton(
+                                                icon=ft.icons.SEND_ROUNDED,
+                                                bgcolor=ft.colors.PINK_100,
+                                                icon_color=ft.colors.PINK,
+                                                icon_size=40,
+                                                on_click=sendClick
+                                            )])
 
-                    ],
-                    bgcolor=pageBackgroundColor,
+                        ],
+                        bgcolor=pageBackgroundColor,
 
+                    )
                 )
-            )
         page.update()
 
     def page_pop(view):  # Go back to previous page

@@ -517,9 +517,9 @@ def main(page: ft.Page):
         spacing=10,
         auto_scroll=True
     )  # Build the layout of the app
-    newMessage = ft.TextField(
-        hint_text="Type a message...",
-        hint_style=ft.TextStyle(size=15, color=messageTypeColor),
+    newMessage = ft.CupertinoTextField(
+        placeholder_text="Type a message...",
+        placeholder_style=ft.TextStyle(size=15, color=messageTypeColor),
         color=messageTypeColor,
         autofocus=True,
         bgcolor=messageBoxColor,
@@ -536,15 +536,21 @@ def main(page: ft.Page):
     buildNumber = grabLunaInfo[3]
     imageFormats = [".png", ".jpg", ".jpeg", ".gif"]  # Supported image formats
     videoFormats = [".mp4"]
-    lunaUsername = ft.TextField(label="Enter your username", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
-                                label_style=ft.TextStyle(size=15, color=messageTypeColor), on_submit=joinClick)
-    lunaPassword = ft.TextField(label="Enter your password", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
-                                label_style=ft.TextStyle(size=15, color=messageTypeColor), on_submit=joinClick,
-                                password=True,
-                                can_reveal_password=True)
-    lunaServerPassword = ft.TextField(label="Enter password", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
-                                      label_style=ft.TextStyle(size=15, color=messageTypeColor),
-                                      on_submit=passwordCheck, password=True, can_reveal_password=True)
+    lunaUsername = ft.CupertinoTextField(placeholder_text="Enter your username", color=messageTypeColor,
+                                         bgcolor=dialogMessageBoxColor,
+                                         placeholder_style=ft.TextStyle(size=15, color=messageTypeColor),
+                                         on_submit=joinClick)
+    lunaPassword = ft.CupertinoTextField(placeholder_text="Enter your password", color=messageTypeColor,
+                                         bgcolor=dialogMessageBoxColor,
+                                         placeholder_style=ft.TextStyle(size=15, color=messageTypeColor),
+                                         on_submit=joinClick,
+                                         password=True,
+                                         can_reveal_password=True)
+    lunaServerPassword = ft.CupertinoTextField(placeholder_text="Enter password", color=messageTypeColor,
+                                               bgcolor=dialogMessageBoxColor,
+                                               placeholder_style=ft.TextStyle(size=15, color=messageTypeColor),
+                                               on_submit=passwordCheck, password=True, can_reveal_password=True)
+    lunaStatus = ft.CupertinoTextField(placeholder_text="Update your status")
 
     page.title = "lunaChat"
     page.bgcolor = pageBackgroundColor
@@ -553,64 +559,54 @@ def main(page: ft.Page):
     print(f"LOG receiving anonymous join on lunaChat instance "
           f"{settings.lunaChatName} ({settings.host}:{settings.port})")
 
-    login = ft.AlertDialog(
+    login = ft.CupertinoAlertDialog(
         open=True,
         modal=True,
-        bgcolor=dialogColor,
         title=ft.Text("Welcome to lunaChat!", color=titleTextColor),
         content=ft.Column([lunaUsername, lunaPassword], tight=True),
-        actions=[ft.ElevatedButton(text="Back", on_click=backToLoginHub, color=ft.colors.PINK,
-                                   bgcolor=dialogButtonColor),
-                 ft.ElevatedButton(text="Login to lunaChat", on_click=joinClick, color=ft.colors.PINK,
-                                   bgcolor=dialogButtonColor)],
-        actions_alignment="end",
+        actions=[ft.CupertinoButton(text="Back", on_click=backToLoginHub, color=ft.colors.PINK,
+                                    bgcolor=dialogButtonColor, padding=5),
+                 ft.CupertinoButton(text="Login", on_click=joinClick, color=ft.colors.PINK,
+                                    bgcolor=dialogButtonColor, padding=5)],
     )  # Opens the alert dialog welcoming the user to lunaChat and takes the input from the user which is the username
 
-    register = ft.AlertDialog(
+    register = ft.CupertinoAlertDialog(
         open=True,
         modal=True,
-        bgcolor=dialogColor,
         title=ft.Text("Register an account on lunaChat!", color=titleTextColor),
         content=ft.Column([lunaUsername, lunaPassword], tight=True),
-        actions=[ft.ElevatedButton(text="Back", on_click=backToLoginHub, color=ft.colors.PINK,
-                                   bgcolor=dialogButtonColor),
-                 ft.ElevatedButton(text="Join lunaChat", on_click=createLunaChatAccount, color=ft.colors.PINK,
-                                   bgcolor=dialogButtonColor)],
-        actions_alignment="end",
+        actions=[ft.CupertinoButton(text="Back", on_click=backToLoginHub, color=ft.colors.PINK,
+                                    bgcolor=dialogButtonColor, padding=5),
+                 ft.CupertinoButton(text="Join lunaChat", on_click=createLunaChatAccount, color=ft.colors.PINK,
+                                    bgcolor=dialogButtonColor, padding=5)],
     )
 
-    menu = ft.AlertDialog(
+    menu = ft.CupertinoAlertDialog(
         open=True,
         modal=True,
-        bgcolor=dialogColor,
         title=ft.Text("lunaChat Login Hub", color=titleTextColor),
         content=ft.Text(settings.lunaLoginMessage),
-        actions=[ft.ElevatedButton(text="Login to lunaChat", on_click=loginMenu, color=ft.colors.PINK,
-                                   bgcolor=dialogButtonColor),
-                 ft.ElevatedButton(text="Register on lunaChat", on_click=registerMenu, color=ft.colors.PINK,
-                                   bgcolor=dialogButtonColor)],
-        actions_alignment="end",
+        actions=[ft.CupertinoButton(text="Login", on_click=loginMenu, color=ft.colors.PINK,
+                                    bgcolor=dialogButtonColor, padding=5),
+                 ft.CupertinoButton(text="Register", on_click=registerMenu, color=ft.colors.PINK,
+                                    bgcolor=dialogButtonColor, padding=5)],
     )
 
-    menuAccountRegisterDisabled = ft.AlertDialog(
+    menuAccountRegisterDisabled = ft.CupertinoAlertDialog(
         open=True,
         modal=True,
-        bgcolor=dialogColor,
         title=ft.Text("lunaChat Login Hub", color=titleTextColor),
         content=ft.Text(settings.lunaLoginMessage),
-        actions=[ft.ElevatedButton(text="Login to lunaChat", on_click=loginMenu, color=ft.colors.PINK,
-                                   bgcolor=dialogButtonColor)],
-        actions_alignment="end",
+        actions=[ft.CupertinoButton(text="Login", on_click=loginMenu, color=ft.colors.PINK,
+                                    bgcolor=dialogButtonColor, padding=5)],
     )
 
-    accountCreated = ft.AlertDialog(
+    accountCreated = ft.CupertinoAlertDialog(
         open=True,
         modal=True,
-        bgcolor=dialogColor,
         title=ft.Text("Account Created Successfully", color=titleTextColor),
-        actions=[ft.ElevatedButton(text="Back", on_click=backToLoginHub, color=ft.colors.PINK,
-                                   bgcolor=dialogButtonColor)],
-        actions_alignment="end",
+        actions=[ft.CupertinoButton(text="Back", on_click=backToLoginHub, color=ft.colors.PINK,
+                                    bgcolor=dialogButtonColor, padding=5)],
     )
 
     def loginDialog():  # Display the login alert dialog
@@ -618,16 +614,13 @@ def main(page: ft.Page):
         login.open = True
         page.update()
 
-    passwordDialog = ft.AlertDialog(
+    passwordDialog = ft.CupertinoAlertDialog(
         open=True,
         modal=True,
-        bgcolor=dialogColor,
         title=ft.Text(f"Enter password for {settings.lunaChatName}'s lunaChat instance", color=titleTextColor),
         content=ft.Column([lunaServerPassword], tight=True),
-        actions=[ft.ElevatedButton(text="Join", on_click=passwordCheck, color=ft.colors.PINK,
-                                   bgcolor=dialogButtonColor)],
-        actions_alignment="end",
-
+        actions=[ft.CupertinoButton(text="Join", on_click=passwordCheck, color=ft.colors.PINK,
+                                    bgcolor=dialogButtonColor, padding=5)],
     )
 
     def registerDialog():
@@ -674,8 +667,9 @@ def main(page: ft.Page):
         bgcolor=bannerBackgroundColor,
         leading=ft.Icon(ft.icons.DESCRIPTION, color=ft.colors.WHITE, size=40),
         content=ft.Text(settings.lunaDescription, color=bannerTextColor),
-        actions=[ft.ElevatedButton("Close", on_click=closeDisplayDescription, color=bannerButtonTextColor,
-                                   bgcolor=bannerButtonColor)]
+        actions=[ft.CupertinoButton("Close", on_click=closeDisplayDescription, color=bannerButtonTextColor,
+                                    bgcolor=bannerButtonColor, padding=5)]
+
     )  # This is where all the contents of the description banner are defined
 
     # Display the description banner when the user clicks on the icon button
@@ -695,8 +689,8 @@ def main(page: ft.Page):
         leading=ft.Icon(ft.icons.INFO, color=ft.colors.WHITE, size=40),
         content=ft.Text(f"Version {currentVersion}", size=20, spans=[ft.TextSpan(
             f"{versionBranch}", ft.TextStyle(size=10, color=titleTextColor))], color=titleTextColor),
-        actions=[ft.ElevatedButton("Close", on_click=closeVersionInfo, color=bannerButtonTextColor,
-                                   bgcolor=bannerButtonColor)]
+        actions=[ft.CupertinoButton("Close", on_click=closeVersionInfo, color=bannerButtonTextColor,
+                                    bgcolor=bannerButtonColor, padding=5)]
     )  # This is where all the contents of the version info banner are defined
 
     # Display the version info banner when the user clicks on the icon button
@@ -817,7 +811,7 @@ def main(page: ft.Page):
                         center_title=False,
                         bgcolor=pageBackgroundColor,
                         toolbar_height=40,
-                        ),
+                    ),
                     ft.Container(
                         ft.Text(f"lunaChat {grabLunaInfo[0]}\nBuild {grabLunaInfo[3]}")
                     )
@@ -839,8 +833,8 @@ def main(page: ft.Page):
                         [
                             ft.AppBar(
                                 title=ft.Text(f"{lunaUsername.value}'s Profile | lunaChat", size=20,
-                                            weight=ft.FontWeight.BOLD,
-                                            color=titleTextColor),
+                                              weight=ft.FontWeight.BOLD,
+                                              color=titleTextColor),
                                 automatically_imply_leading=False,
                                 center_title=False,
                                 bgcolor=pageBackgroundColor,
@@ -848,10 +842,10 @@ def main(page: ft.Page):
                                 actions=[
                                     ft.IconButton(ft.icons.INFO, on_click=openVersionInfo, icon_color=ft.colors.PINK),
                                     ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription,
-                                                icon_color=ft.colors.PINK),
+                                                  icon_color=ft.colors.PINK),
                                     ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.colors.PINK),
                                     ft.IconButton(ft.icons.ACCOUNT_CIRCLE, icon_color=ft.colors.PINK,
-                                                on_click=lambda _: page.go("/chat"))
+                                                  on_click=lambda _: page.go("/chat"))
                                 ]),
                             ft.Container(
                                 content=ft.Row(controls=[
@@ -865,7 +859,8 @@ def main(page: ft.Page):
                                             ft.Text(f"{lunaUsername.value}"),
                                         ]),
                                         ft.Text("            Online", color=ft.colors.BLUE),
-                                        ft.Text("            Status: ")
+                                        ft.Text("            Status: "),
+                                        lunaStatus
 
                                     ]),
                                 ])
@@ -885,7 +880,7 @@ def main(page: ft.Page):
                         [
                             ft.AppBar(
                                 title=ft.Text(f"{settings.lunaChatName} | lunaChat", size=20, weight=ft.FontWeight.BOLD,
-                                          color=titleTextColor),
+                                              color=titleTextColor),
                                 center_title=False,
                                 bgcolor=pageBackgroundColor,
                                 toolbar_height=40,
@@ -895,19 +890,19 @@ def main(page: ft.Page):
                                                   icon_color=ft.colors.PINK),
                                     ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.colors.PINK),
                                     ft.IconButton(ft.icons.ACCOUNT_CIRCLE, icon_color=ft.colors.PINK,
-                                                on_click=lambda _: page.go(f"/profile/{lunaUsername.value}"))
+                                                  on_click=lambda _: page.go(f"/profile/{lunaUsername.value}"))
                                 ],
                                 automatically_imply_leading=False
                             ),
                             lunaChat,
                             ft.Row(controls=[newMessage,
-                                            ft.IconButton(
-                                                icon=ft.icons.SEND_ROUNDED,
-                                                bgcolor=ft.colors.PINK_100,
-                                                icon_color=ft.colors.PINK,
-                                                icon_size=40,
-                                                on_click=sendClick
-                                            )])
+                                             ft.IconButton(
+                                                 icon=ft.icons.SEND_ROUNDED,
+                                                 bgcolor=ft.colors.PINK_100,
+                                                 icon_color=ft.colors.PINK,
+                                                 icon_size=20,
+                                                 on_click=sendClick
+                                             )])
 
                         ],
                         bgcolor=pageBackgroundColor,
@@ -918,7 +913,7 @@ def main(page: ft.Page):
 
     def page_pop(view):  # Go back to previous page
         page.views.pop()
-        top_view = page.views[-1]
+        top_view = page.views[0]
         page.go(top_view.route)
 
     page.on_route_change = route_change

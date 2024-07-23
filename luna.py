@@ -292,8 +292,11 @@ def main(page: ft.Page):
             page.pubsub.send_all(LunaMessage(lunaUser=lunaBOTUsername, lunaText=encrypted_bot_message,
                                              lunaMessageType="lunaChatMessage", lunaKey=bot_key))
 
+        if message == "!lunaBOT":
+            lunaBOTResponse = f"Please enter a parameter when invoking the bot (requested by {lunaUsername.value})"
+            sendLunaBOTMessage(lunaBOTResponse)
         if "buildNumber" in message:  # If the message contains "buildNumber" then lunaBOT will print out the build number
-            lunaBOTResponse = f"Build Number: {buildNumber}"  # lunaBOT's response
+            lunaBOTResponse = f"Build {buildNumber}"  # lunaBOT's response
             sendLunaBOTMessage(lunaBOTResponse)
         if "commands" in message:
             lunaBOTResponse = ("List of commands\n"
@@ -310,6 +313,9 @@ def main(page: ft.Page):
             sendLunaBOTMessage(lunaBOTResponse)
         if "banned_word_sent" in message:
             lunaBOTResponse = f"{lunaUsername.value} tried to send a message that contained a banned word"
+            sendLunaBOTMessage(lunaBOTResponse)
+        if "versionInfo" in message:
+            lunaBOTResponse = f"lunaChat 1.0\nAlpha 2\nBuild {buildNumber}"
             sendLunaBOTMessage(lunaBOTResponse)
         print(f"LOG (Message Type: lunaChatMessage) (lunaBOT): {lunaBOTResponse} (requested by {lunaUsername.value})")
 
@@ -859,8 +865,8 @@ def main(page: ft.Page):
                                             ft.Text(f"{lunaUsername.value}"),
                                         ]),
                                         ft.Text("            Online", color=ft.colors.BLUE),
-                                        ft.Text("            Status: "),
-                                        lunaStatus
+                                        #ft.Text("            Status: "),
+                                        #lunaStatus
 
                                     ]),
                                 ])

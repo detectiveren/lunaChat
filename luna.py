@@ -865,8 +865,8 @@ def main(page: ft.Page):
                                             ft.Text(f"{lunaUsername.value}"),
                                         ]),
                                         ft.Text("            Online", color=ft.colors.BLUE),
-                                        #ft.Text("            Status: "),
-                                        #lunaStatus
+                                        ft.Text("            Status: "),
+                                        lunaStatus
 
                                     ]),
                                 ])

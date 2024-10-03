@@ -242,8 +242,8 @@ def loadDatabase():
 #if settings.enableAccountCreation:
 #    loadDatabase()
 
-print("loaded classes LunaMessage, LunaChatMessage, LunaImageMessage and LunaVideoMessage, message container has been "
-      "created")
+#print("loaded classes LunaMessage, LunaChatMessage, LunaImageMessage and LunaVideoMessage, message container has been "
+#      "created")
 
 with open('./config/usernamesInUse.txt', 'w') as clearUserList:  # Clear usernameInUse list from the previous session
     clearUserList.write("admin\n")
@@ -360,7 +360,7 @@ def main(page: ft.Page):
     def passwordCheck(e):  # Takes the input from the password textfield and checks if it's the correct password
         if lunaServerPassword.value == settings.serverPassword:
             page.session.set("lunaServerPassword", lunaServerPassword.value)
-            page.dialog.open = False
+            page.close = True
             if settings.enableAccountCreation:  # Calls the login dialog once it has closed the password dialog
                 displayLoginHub()
             else:
@@ -372,16 +372,14 @@ def main(page: ft.Page):
     def createLunaChatAccount(e):
         if not lunaUsername.value or not lunaPassword.value:
             if not lunaUsername.value:
-                lunaUsername.error_text = "Please enter a valid username"
-                lunaUsername.update()
+                lunaErrorText.color = ft.colors.RED
+                lunaErrorText.value = "Please enter a username"
+                lunaErrorText.update()
             if not lunaPassword.value:
-                lunaPassword.error_text = "Please enter a valid password"
-                lunaPassword.update()
+                lunaErrorText.color = ft.colors.RED
+                lunaErrorText.value = "Please enter a password"
+                lunaErrorText.update()
         else:
-            lunaUsername.error_text = ""
-            lunaUsername.update()
-            lunaPassword.error_text = ""
-            lunaPassword.update()
             conn = sqlite3.connect('lunaData.db')
 
             cursor = conn.cursor()
@@ -433,22 +431,24 @@ def main(page: ft.Page):
             print("Error:", e)
 
     def backToLoginHub(e):
-        page.dialog.open = False
+        page.close = True
+        lunaErrorText.color = ft.colors.WHITE
+        lunaErrorText.value = "Please enter a username and password"
         if settings.enableAccountCreation:
             displayLoginHub()
         else:
             displayLoginHubRegisterDisabled()
 
     def loginMenu(e):
-        page.dialog.open = False
+        page.close = True
         loginDialog()
 
     def registerMenu(e):
-        page.dialog.open = False
+        page.close = True
         registerDialog()
 
     def accountCreatedSuccessfullyScreen():
-        page.dialog.open = False
+        page.close = True
         displayAccountCreated()
 
     def retrieveChatLogs():
@@ -558,24 +558,28 @@ def main(page: ft.Page):
             bannedUsername = [line.rstrip('\n') for line in bannedUsername]
 
         if not lunaUsername.value:
-            lunaUsername.error_text = "USERNAME CANNOT BE BLANK"
-            lunaUsername.update()
+            lunaErrorText.color = ft.colors.RED
+            lunaErrorText.value = "USERNAME CANNOT BE BLANK"
+            lunaErrorText.update()
             lunaUsername.value = ""
         elif "lunaBOT" in lunaUsername.value:  # If the user input is lunaBOT it will return an error
-            lunaUsername.error_text = "USERNAME INVALID"
-            lunaUsername.update()
+            lunaErrorText.color = ft.colors.RED
+            lunaErrorText.value = "USERNAME INVALID"
+            lunaErrorText.update()
             lunaUsername.value = ""
             print("LOG (Login System) Anonymous user tried to log in but the username was invalid")
         elif lunaUsername.value.strip() in usernamesInUse:
             # If the username is found in the usernamesInUse list then the username is in use
-            lunaUsername.error_text = "USERNAME IN USE"
-            lunaUsername.update()
+            lunaErrorText.color = ft.colors.RED
+            lunaErrorText.value = "USERNAME IN USE"
+            lunaErrorText.update()
             print(f"LOG (Login System) Anonymous user tried to log in with the username {lunaUsername.value.strip()}"
                   f" but it was already in use")
             lunaUsername.value = ""
         elif lunaUsername.value.strip() in bannedUsername:
-            lunaUsername.error_text = "USERNAME IS BANNED"
-            lunaUsername.update()
+            lunaErrorText.color = ft.colors.RED
+            lunaErrorText.value = "USERNAME IS BANNED"
+            lunaErrorText.update()
             print(f"LOG (Login System) Anonymous user tried to log in with the username {lunaUsername.value.strip()}"
                   f" but the username is banned")
             lunaUsername.value = ""
@@ -594,7 +598,7 @@ def main(page: ft.Page):
                     # Optionally, you can update the UI to reflect the successful login
                     # Add your post-login logic here (e.g., redirect to chat interface)
                     page.session.set("lunaUsername", lunaUsername.value)  # Takes in the username value that was entered
-                    page.dialog.open = False
+                    page.close = True
 
                     userID = result[0]
 
@@ -674,6 +678,7 @@ def main(page: ft.Page):
                                                placeholder_style=ft.TextStyle(size=15, color=messageTypeColor),
                                                on_submit=passwordCheck, password=True, can_reveal_password=True)
     lunaStatus = ft.CupertinoTextField(placeholder_text="Update your status", on_submit=changeUserStatus)
+    lunaErrorText = ft.Text("Please enter a username and password", color=ft.colors.WHITE)
 
     page.title = "lunaChat"
     page.bgcolor = pageBackgroundColor
@@ -686,7 +691,7 @@ def main(page: ft.Page):
         open=True,
         modal=True,
         title=ft.Text("Welcome to lunaChat!", color=titleTextColor),
-        content=ft.Column([lunaUsername, lunaPassword], tight=True),
+        content=ft.Column([lunaUsername, lunaPassword, lunaErrorText], tight=True),
         actions=[ft.CupertinoButton(text="Back", on_click=backToLoginHub, color=ft.colors.PINK,
                                     bgcolor=dialogButtonColor, padding=5),
                  ft.CupertinoButton(text="Login", on_click=joinClick, color=ft.colors.PINK,
@@ -697,7 +702,7 @@ def main(page: ft.Page):
         open=True,
         modal=True,
         title=ft.Text("Register an account on lunaChat!", color=titleTextColor),
-        content=ft.Column([lunaUsername, lunaPassword], tight=True),
+        content=ft.Column([lunaUsername, lunaPassword, lunaErrorText], tight=True),
         actions=[ft.CupertinoButton(text="Back", on_click=backToLoginHub, color=ft.colors.PINK,
                                     bgcolor=dialogButtonColor, padding=5),
                  ft.CupertinoButton(text="Join lunaChat", on_click=createLunaChatAccount, color=ft.colors.PINK,
@@ -733,8 +738,7 @@ def main(page: ft.Page):
     )
 
     def loginDialog():  # Display the login alert dialog
-        page.dialog = login
-        login.open = True
+        page.open(login)
         page.update()
 
     passwordDialog = ft.CupertinoAlertDialog(
@@ -747,28 +751,23 @@ def main(page: ft.Page):
     )
 
     def registerDialog():
-        page.dialog = register
-        register.open = True
+        page.open(register)
         page.update()
 
     def displayLoginHub():
-        page.dialog = menu
-        menu.open = True
+        page.open(menu)
         page.update()
 
     def displayLoginHubRegisterDisabled():
-        page.dialog = menuAccountRegisterDisabled
-        menuAccountRegisterDisabled.open = True
+        page.open(menuAccountRegisterDisabled)
         page.update()
 
     def displayAccountCreated():
-        page.dialog = accountCreated
-        accountCreated.open = True
+        page.open(accountCreated)
         page.update()
 
     def displayPasswordScreen():  # Display the password alert dialog
-        page.dialog = passwordDialog
-        passwordDialog.open = True
+        page.open(passwordDialog)
         page.update()
 
     if settings.serverPasswordRequired:  # If the server requires a password open up that dialog
@@ -782,11 +781,11 @@ def main(page: ft.Page):
 
     # Close the description banner when the user clicks on the close button
     def closeDisplayDescription(e):
-        page.banner = lunaChatDesc
         lunaChatDesc.open = False
         page.update()
 
     lunaChatDesc = ft.Banner(
+        open=False,
         bgcolor=bannerBackgroundColor,
         leading=ft.Icon(ft.icons.DESCRIPTION, color=ft.colors.WHITE, size=40),
         content=ft.Text(settings.lunaDescription, color=bannerTextColor),
@@ -797,17 +796,18 @@ def main(page: ft.Page):
 
     # Display the description banner when the user clicks on the icon button
     def openDisplayDescription(e):
-        page.banner = lunaChatDesc
-        lunaChatDesc.open = True
+        if lunaVersionInfo.open:
+            lunaVersionInfo.open = False
+        page.open(lunaChatDesc)
         page.update()
 
     # Close the version info banner when the user clicks on the close button
     def closeVersionInfo(e):
-        page.banner = lunaVersionInfo
         lunaVersionInfo.open = False
         page.update()
 
     lunaVersionInfo = ft.Banner(
+        open=False,
         bgcolor=bannerBackgroundColor,
         leading=ft.Icon(ft.icons.INFO, color=ft.colors.WHITE, size=40),
         content=ft.Text(f"Version {currentVersion}", size=20, spans=[ft.TextSpan(
@@ -818,8 +818,9 @@ def main(page: ft.Page):
 
     # Display the version info banner when the user clicks on the icon button
     def openVersionInfo(e):
-        page.banner = lunaVersionInfo
-        lunaVersionInfo.open = True
+        if lunaChatDesc:
+            lunaChatDesc.open = False
+        page.open(lunaVersionInfo)
         page.update()
 
     def addUsersToList():  # Add users to navigation drawer

@@ -402,7 +402,7 @@ def main(page: ft.Page):
                     cursor.execute("INSERT INTO accounts (username, password, status) VALUES (?, ?, ?)",
                                    (lunaUsername.value, lunaPassword.value, 0))
                     conn.commit()
-                    print("Account added successfully with ID:", cursor.lastrowid)
+                    print("LOG account created successfully with ID:", cursor.lastrowid)
                     accountCreatedSuccessfullyScreen()
             except sqlite3.Error as e:
                 print("Error:", e)
@@ -594,7 +594,7 @@ def main(page: ft.Page):
                 result = cursor.fetchone()
 
                 if result:
-                    print("Login successful")
+                    print(f"LOG {lunaUsername.value} has logged in")
                     # Optionally, you can update the UI to reflect the successful login
                     # Add your post-login logic here (e.g., redirect to chat interface)
                     page.session.set("lunaUsername", lunaUsername.value)  # Takes in the username value that was entered

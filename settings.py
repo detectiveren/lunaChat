@@ -10,3 +10,4 @@ displayServerAddressOnLogin = True
 enableAccountCreation = True
 # Flags
 lunaExperimentalColorOverride = False
+testDatabaseIntegrityOnLaunch = True

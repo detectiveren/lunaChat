@@ -243,10 +243,13 @@ def testDatabase():
     result = database_cursor.fetchone()  # Catch the result
 
     if result[0] == "ok":
-        print("Database Integrity completed with no errors")
+        dbIntegrityResult = "Database Integrity completed with no errors"
+        print(dbIntegrityResult)
     else:
-        print("Database Integrity Check failed. Please shut down the application and repair or replace the database "
-              "before relaunching. \nDatabase Integrity Error: ", result[0])
+        dbIntegrityResult = (f"Database Integrity Check failed. Please shut down the application and repair or replace "
+                             f"the database before relaunching. \nDatabase Integrity Error: {result[0]}")
+        print(dbIntegrityResult)
+    return dbIntegrityResult
 
 
 if settings.testDatabaseIntegrityOnLaunch:
@@ -270,7 +273,7 @@ def main(page: ft.Page):
     def onLunaChatLog(topic, chatLog: LunaMessage):
         """Adds previous chat log messages to the chat"""
         if chatLog.lunaMessageType == "lunaChatMessage":  # If the message type is a chat message
-            #decrypted_message = fernetDecryptMessage(chatLog.lunaText, chatLog.lunaKey)  # Decrypt the message
+            # decrypted_message = fernetDecryptMessage(chatLog.lunaText, chatLog.lunaKey)  # Decrypt the message
             message = LunaMessage(lunaUser=chatLog.lunaUser, lunaText=chatLog.lunaText,
                                   lunaMessageType=chatLog.lunaMessageType, lunaKey=chatLog.lunaKey)
             # Add the decrypted message to LunaMessage
@@ -282,7 +285,7 @@ def main(page: ft.Page):
     def onLunaMessage(topic, message: LunaMessage):
         """Adds the message to the onLunaMessage topic which adds it to chat"""
         if message.lunaMessageType == "lunaChatMessage":  # If the message type is a chat message
-            #decrypted_message = fernetDecryptMessage(message.lunaText, message.lunaKey)  # Decrypt the message
+            # decrypted_message = fernetDecryptMessage(message.lunaText, message.lunaKey)  # Decrypt the message
             message = LunaMessage(lunaUser=message.lunaUser, lunaText=message.lunaText,
                                   lunaMessageType=message.lunaMessageType, lunaKey=message.lunaKey)
             # Add the decrypted message to LunaMessage
@@ -290,12 +293,12 @@ def main(page: ft.Page):
         elif message.lunaMessageType == "lunaLoginMessage":  # If the message type is a login message
             lunaMsg = ft.Text(message.lunaText, italic=True, color=loginMessageColor, size=12)
         elif message.lunaMessageType == "lunaImageMessage":  # If the message type is an image message
-            #decrypted_message = fernetDecryptMessage(message.lunaText, message.lunaKey)
+            # decrypted_message = fernetDecryptMessage(message.lunaText, message.lunaKey)
             message = LunaMessage(lunaUser=message.lunaUser, lunaText=message.lunaText,
                                   lunaMessageType=message.lunaMessageType, lunaKey=message.lunaKey)
             lunaMsg = lunaImageMessage(message)
         elif message.lunaMessageType == "lunaVideoMessage":
-            #decrypted_message = fernetDecryptMessage(message.lunaText, message.lunaKey)
+            # decrypted_message = fernetDecryptMessage(message.lunaText, message.lunaKey)
             message = LunaMessage(lunaUser=message.lunaUser, lunaText=message.lunaText,
                                   lunaMessageType=message.lunaMessageType, lunaKey=message.lunaKey)
             lunaMsg = lunaVideoMessage(message)
@@ -313,9 +316,9 @@ def main(page: ft.Page):
 
         def sendLunaBOTMessage(response):  # Send the response from lunaBOT into chat
             """Sends lunaBOT's message to chat"""
-            #encrypted_bot_message, bot_key = fernetEncryptMessage(response)  # Encrypt the bots messages
+            # encrypted_bot_message, bot_key = fernetEncryptMessage(response)  # Encrypt the bots messages
             page.pubsub.send_all_on_topic("Default", LunaMessage(lunaUser=lunaBOTUsername, lunaText=response,
-                                             lunaMessageType="lunaChatMessage", lunaKey=0))
+                                                                 lunaMessageType="lunaChatMessage", lunaKey=0))
 
         if message == "!lunaBOT":
             lunaBOTResponse = f"Please enter a parameter when invoking the bot (requested by {lunaUsername.value})"
@@ -346,6 +349,9 @@ def main(page: ft.Page):
             messageSplit = message.split()
             username = messageSplit[2]
             print(username)  # Not complete
+        if "dbCheck" in message:
+            lunaBOTResponse = f"{str(testDatabase())}"
+            sendLunaBOTMessage(lunaBOTResponse)
 
         # Sends the lunaUsername, message, message type and message key
         conn = sqlite3.connect('lunaData.db')
@@ -354,12 +360,12 @@ def main(page: ft.Page):
         try:
             # Check if the username and password match an existing account
             cursor.execute("SELECT id FROM accounts WHERE username = ?",
-                            (lunaBOTUsername,))
+                           (lunaBOTUsername,))
             grabUserID = cursor.fetchone()
             userID = grabUserID[0]
 
             cursor.execute("INSERT INTO messages (user_id, message, key) VALUES (?, ?, ?)",
-                            (userID, lunaBOTResponse, 0))
+                           (userID, lunaBOTResponse, 0))
             conn.commit()
 
         except sqlite3.Error as e:
@@ -377,9 +383,13 @@ def main(page: ft.Page):
                 displayLoginHub()
             else:
                 displayLoginHubRegisterDisabled()
+            lunaErrorText.color = ft.colors.WHITE
+            lunaErrorText.value = "Please enter a username and password"
+            lunaErrorText.update()
         else:
-            lunaServerPassword.error_text = "INVALID PASSWORD"
-            lunaServerPassword.update()
+            lunaErrorText.color = ft.colors.RED
+            lunaErrorText.value = "INVALID PASSWORD"
+            lunaErrorText.update()
 
     def createLunaChatAccount(e):
         """Handles the creation of a user account"""
@@ -490,7 +500,7 @@ def main(page: ft.Page):
                 cursor.execute("SELECT username FROM accounts WHERE id = ?", (userID,))
                 grabUsername = cursor.fetchone()
                 username = grabUsername[0]
-                #encrypted_message, key = fernetEncryptMessage(message)
+                # encrypted_message, key = fernetEncryptMessage(message)
                 # Encrypt the message and return both the encrypted message and key
                 page.pubsub.send_all_on_topic("ChatLogs", LunaMessage(lunaUser=username, lunaText=message,
                                                                       lunaMessageType="lunaChatMessage", lunaKey=0))
@@ -513,17 +523,18 @@ def main(page: ft.Page):
             bannedWords = readBannedWords.readlines()  # Read all the usernames from the textfile into the list
             bannedWords = [line.rstrip('\n') for line in bannedWords]
 
-        #message = newMessage.value  # This is the message in plain text so that the if statements can read it
-        #encrypted_message, key = fernetEncryptMessage(newMessage.value)
+        # message = newMessage.value  # This is the message in plain text so that the if statements can read it
+        # encrypted_message, key = fernetEncryptMessage(newMessage.value)
         # Encrypt the message and return both the encrypted message and key (ENCRYPTION OFF)
-        #newMessage.value = encrypted_message
+        # newMessage.value = encrypted_message
 
         # Put the encrypted message into newMessage.value
 
         def standardMessage():
             """Sends a standard message to chat"""
-            page.pubsub.send_all_on_topic("Default", LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
-                                             lunaMessageType="lunaChatMessage", lunaKey=0))
+            page.pubsub.send_all_on_topic("Default", LunaMessage(lunaUser=page.session.get('lunaUsername'),
+                                                                 lunaText=newMessage.value,
+                                                                 lunaMessageType="lunaChatMessage", lunaKey=0))
             # Sends the lunaUsername, message, message type and message key
             conn = sqlite3.connect('lunaData.db')
             cursor = conn.cursor()
@@ -547,8 +558,9 @@ def main(page: ft.Page):
             lunaBOT(newMessage.value)
         elif any(imgFormat in newMessage.value for imgFormat in imageFormats):  # If the message contains an image link
             print(f"LOG (Message Type: lunaImageMessage) ({lunaUsername.value}) sent an image with a link")
-            page.pubsub.send_all_on_topic("Default", LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
-                                             lunaMessageType="lunaImageMessage", lunaKey=0))
+            page.pubsub.send_all_on_topic("Default", LunaMessage(lunaUser=page.session.get('lunaUsername'),
+                                                                 lunaText=newMessage.value,
+                                                                 lunaMessageType="lunaImageMessage", lunaKey=0))
         # elif any(videoFormat in message for videoFormat in videoFormats):
         #    print(f"LOG (Message Type: lunaVideoMessage) ({lunaUsername.value}) sent a video with a link")
         #    page.pubsub.send_all(LunaMessage(lunaUser=page.session.get('lunaUsername'), lunaText=newMessage.value,
@@ -634,13 +646,15 @@ def main(page: ft.Page):
                     lunaStatus.value = customStatusMessage
                     if settings.displayServerAddressOnLogin:  # If the value is true then display the server address and port
                         page.pubsub.send_all_on_topic("Default", LunaMessage(lunaUser=lunaUsername.value,
-                                                         lunaText=f"{lunaUsername.value} has joined {settings.lunaChatName}'s lunaChat instance "
-                                                                  f"({settings.host}:{settings.port})",
-                                                         lunaMessageType="lunaLoginMessage", lunaKey=0))
+                                                                             lunaText=f"{lunaUsername.value} has joined {settings.lunaChatName}'s lunaChat instance "
+                                                                                      f"({settings.host}:{settings.port})",
+                                                                             lunaMessageType="lunaLoginMessage",
+                                                                             lunaKey=0))
                     else:
                         page.pubsub.send_all_on_topic("Default", LunaMessage(lunaUser=lunaUsername.value,
-                                                         lunaText=f"{lunaUsername.value} has joined {settings.lunaChatName}'s lunaChat instance",
-                                                         lunaMessageType="lunaLoginMessage", lunaKey=0))
+                                                                             lunaText=f"{lunaUsername.value} has joined {settings.lunaChatName}'s lunaChat instance",
+                                                                             lunaMessageType="lunaLoginMessage",
+                                                                             lunaKey=0))
                     page.go('/chat')
                     print(
                         f"LOG (Message Type: lunaLoginMessage) ({lunaUsername.value}) has joined {settings.lunaChatName}'s "
@@ -768,7 +782,7 @@ def main(page: ft.Page):
         open=True,
         modal=True,
         title=ft.Text(f"Enter password for {settings.lunaChatName}'s lunaChat instance", color=titleTextColor),
-        content=ft.Column([lunaServerPassword], tight=True),
+        content=ft.Column([lunaServerPassword, lunaErrorText], tight=True),
         actions=[ft.CupertinoButton(text="Join", on_click=passwordCheck, color=ft.colors.PINK,
                                     bgcolor=dialogButtonColor, padding=5)],
     )
@@ -796,6 +810,8 @@ def main(page: ft.Page):
     def displayPasswordScreen():  # Display the password alert dialog
         """Open the Password Screen dialog"""
         page.open(passwordDialog)
+        lunaErrorText.value = "Please enter the server password"
+        lunaErrorText.update()
         page.update()
 
     if settings.serverPasswordRequired:  # If the server requires a password open up that dialog
@@ -883,7 +899,7 @@ def main(page: ft.Page):
             usernameList.append(ft.Row(controls=[
                 ft.Icon(name=ft.icons.ACCOUNT_CIRCLE, color=chatMessageColor),
                 ft.Text(f"{username} - \"{customStatusMessage}\" ")
-                ]
+            ]
             ))
             username_count = username_count + 1
 
@@ -920,9 +936,9 @@ def main(page: ft.Page):
 
             if lunaUsername.value != "":
                 page.pubsub.send_all_on_topic("Default", LunaMessage(lunaUser=lunaUsername.value,
-                                                 lunaText=f"{lunaUsername.value} has logged out of {settings.lunaChatName}'s "
-                                                          f"lunaChat instance",
-                                                 lunaMessageType="lunaLoginMessage", lunaKey=0))
+                                                                     lunaText=f"{lunaUsername.value} has logged out of {settings.lunaChatName}'s "
+                                                                              f"lunaChat instance",
+                                                                     lunaMessageType="lunaLoginMessage", lunaKey=0))
 
                 print(f"LOG (Message Type: lunaLoginMessage) {lunaUsername.value.strip()} has logged out of "
                       f"{settings.lunaChatName}'s lunaChat instance")

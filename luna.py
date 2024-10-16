@@ -5,7 +5,7 @@ from time import sleep
 import sqlite3
 import system
 import platform
-from pyaes256 import PyAES256
+
 
 # Resources used to develop the app https://flet.dev/docs/tutorials/python-realtime-chat/#getting-started-with-flet
 # For info on how to deal with keyboard events https://flet.dev/docs/guides/python/keyboard-shortcuts/
@@ -42,6 +42,7 @@ print(f"lunaChat instance {settings.lunaChatName} started on http://{settings.ho
 
 # Moved both getInitials and getAvatarColor outside the previous class as it will be referenced by two classes
 # Doesn't need to be within a class anyway
+
 
 # THIS ENCRYPTION METHOD IS GOING TO BE REPLACED BY ANOTHER ONE
 def fernetEncryptMessage(message):  # Grab the message from the user

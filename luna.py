@@ -5,7 +5,7 @@ from time import sleep
 import sqlite3
 import system
 import platform
-
+from pyaes256 import PyAES256
 
 # Resources used to develop the app https://flet.dev/docs/tutorials/python-realtime-chat/#getting-started-with-flet
 # For info on how to deal with keyboard events https://flet.dev/docs/guides/python/keyboard-shortcuts/

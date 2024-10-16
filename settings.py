@@ -8,6 +8,7 @@ serverPasswordRequired = False
 serverPassword = "server_password_here"
 displayServerAddressOnLogin = True
 enableAccountCreation = True
+encryption_key = ""
 # Flags
 lunaExperimentalColorOverride = False
 testDatabaseIntegrityOnLaunch = True

@@ -465,19 +465,24 @@ def main(page: ft.Page):
             displayLoginHubRegisterDisabled()
 
     def loginMenu(e):
-        """Closes the Login Menu dialog"""
+        """Closes the prior dialog and opens Login Menu dialog"""
         page.close = True
         loginDialog()
 
     def registerMenu(e):
-        """Closes the Register Menu dialog"""
+        """Closes the prior dialog and opens Register Menu dialog"""
         page.close = True
         registerDialog()
 
     def accountCreatedSuccessfullyScreen():
-        """Closes the Account Created Successfully Screen dialog"""
+        """Closes the prior dialog and opens Account Created Successfully Screen dialog"""
         page.close = True
         displayAccountCreated()
+
+    def deleteAccountMenu(e):
+        """Closes the prior dialog and opens Delete Account Screen dialog"""
+        page.close = True
+        deleteAccountDialog()
 
     def retrieveChatLogs():
         """Retrieves the chat logs from the database"""
@@ -713,7 +718,7 @@ def main(page: ft.Page):
                                                bgcolor=dialogMessageBoxColor,
                                                placeholder_style=ft.TextStyle(size=15, color=messageTypeColor),
                                                on_submit=passwordCheck, password=True, can_reveal_password=True)
-    lunaStatus = ft.CupertinoTextField(placeholder_text="Update your status", on_submit=changeUserStatus)
+    lunaStatus = ft.CupertinoTextField(placeholder_text="Update your status", on_submit=changeUserStatus, width=250)
     lunaErrorText = ft.Text("Please enter a username and password", color=ft.colors.WHITE)
 
     page.title = "lunaChat"
@@ -773,9 +778,25 @@ def main(page: ft.Page):
                                     bgcolor=dialogButtonColor, padding=5)],
     )
 
+    deleteAccount = ft.CupertinoAlertDialog(  # Add on_click functionality
+        open=True,
+        modal=True,
+        title=ft.Text("Delete Account", color=titleTextColor),
+        content=ft.Column([lunaUsername, lunaPassword, lunaErrorText], tight=True),
+        actions=[ft.CupertinoButton(text="Back", color=ft.colors.PINK,
+                                    bgcolor=dialogButtonColor, padding=5),
+                 ft.CupertinoButton(text="Delete Account", color=ft.colors.PINK,
+                                    bgcolor=dialogButtonColor, padding=5)],
+    )
+
     def loginDialog():  # Display the login alert dialog
         """Open the Login dialog"""
         page.open(login)
+        page.update()
+
+    def deleteAccountDialog():
+        """Open the Delete Account Dialog"""
+        page.open(deleteAccount)
         page.update()
 
     passwordDialog = ft.CupertinoAlertDialog(
@@ -1041,24 +1062,39 @@ def main(page: ft.Page):
                                                   on_click=lambda _: page.go("/chat"))
                                 ]),
                             ft.Container(
-                                content=ft.Row(controls=[
-                                    ft.Column(controls=[
-                                        ft.Text("Profile Information"),
-                                        ft.Row(controls=[
-                                            ft.CircleAvatar(  # The avatar that will pop up in the message container
-                                                content=ft.Text(getInitials(lunaUsername.value)),
-                                                color=ft.colors.WHITE,
-                                                bgcolor=getAvatarColor(lunaUsername.value)),
-                                            ft.Text(f"{lunaUsername.value}"),
-                                        ]),
-                                        ft.Text("            Online", color=ft.colors.BLUE),
-                                        ft.Text(f"            Status: {lunaStatus.value}"),
-                                        lunaStatus,
-                                        ft.Text(f"Online - {getUserList[1]} Users Active", color=chatMessageColor),
-                                        *getUserList[0],
+                                content=ft.Container(
+                                    content=ft.Row(controls=[
+                                        ft.Column(controls=[
+                                            ft.Text("Profile Information"),
+                                            ft.Row(controls=[
+                                                ft.CircleAvatar(  # The avatar that will pop up in the message container
+                                                    content=ft.Text(getInitials(lunaUsername.value)),
+                                                    color=ft.colors.WHITE,
+                                                    bgcolor=getAvatarColor(lunaUsername.value)),
+                                                ft.Text(f"{lunaUsername.value}"),
+                                            ]),
+                                            ft.Text("            Online", color=ft.colors.BLUE),
+                                            ft.Text(f"            Status: {lunaStatus.value}"),
+                                            lunaStatus,
 
-                                    ]),
-                                ])
+                                        ],
+                                            expand=3,  # Set the ratio of how much width the column will take up
+                                            alignment=ft.MainAxisAlignment.START,  # Set the alignment for this column
+                                            height=300  # Set the height of the column
+                                        ),
+                                        ft.Column(controls=[
+                                            ft.Text(f"Online - {getUserList[1]} Users Active", color=chatMessageColor),
+                                            ft.Column(controls=[
+                                                *getUserList[0],
+                                            ], scroll=ft.ScrollMode.ADAPTIVE)
+                                        ],
+                                            expand=1,  # Set the ratio of how much width the column will take up
+                                            alignment=ft.MainAxisAlignment.START,  # Set the alignment for this column
+                                            height=300  # Set the height of the column
+                                        )
+                                    ], alignment=ft.MainAxisAlignment.START
+                                    ), height=300
+                                )
                             )
                         ],
                         bgcolor=pageBackgroundColor

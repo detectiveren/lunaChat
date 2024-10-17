@@ -9,10 +9,11 @@ lunaChat is an app that is built on Python and Flet (powered by Flutter), curren
 ## Screenshots
 
 - Light Mode
-![image](https://github.com/detectiveren/lunaChat/assets/55319774/0ede7391-aa9d-40e1-82a8-653cde2cb741)
+![image](https://github.com/user-attachments/assets/62786fbb-cb64-4da6-be1d-f504ee749b85)
+
 
 - Dark Mode
-![image](https://github.com/detectiveren/lunaChat/assets/55319774/9a6de153-6102-4978-bf58-4cc6bdb452e2)
+![image](https://github.com/user-attachments/assets/1771c3ac-e4d1-4acc-b185-cd9e67261394)
 
 
 
@@ -22,7 +23,7 @@ lunaChat is an app that is built on Python and Flet (powered by Flutter), curren
 - Install Python 3.12
 - Install the dependancies ```pip install -r requirements.txt```
 - Ensure you are in the root directory of the source code folder you extracted
-- Modify settings.py to your liking, at the moment you can only change the host and port
+- Modify settings.py to your liking, for example you can change the host and port
 - Go into your terminal and cd into the source code directory
 - To run the application, type ```python3 luna.py```
 - Enjoy!
@@ -33,7 +34,9 @@ lunaChat is an app that is built on Python and Flet (powered by Flutter), curren
 - Set up a name for your own lunaChat instance ```check settings.py```
 - Set up a description for your lunaChat instance ```check settings.py```
 - Set a password for your lunaChat instance ```check settings.py```
-- Enter a username when you login to a lunaChat instance
+- Create an account on lunaChat
+- Login to the account you created on lunaChat
+- Set a custom status
 - Send and receive text messages in a lunaChat instance
 - Send and receive embedded images and GIFs
 - Ban specific usernames using a banned usernames list ```check config/bannedUsernames.txt```
@@ -52,7 +55,7 @@ lunaChat is an app that is built on Python and Flet (powered by Flutter), curren
 
 ## Interacting with lunaBOT
 
-So far lunaBOT is still really early and can only do one command which is telling you what the build number is, further upgrades are planned for lunaBOT so look out for that.
+So far lunaBOT is still really early and can only do a couple of commands, further upgrades are planned for lunaBOT so look out for that.
 
 - ```!lunaBOT buildNumber``` will make lunaBOT print the build number
 - ```!lunaBOT commands``` will make lunaBOT display a full list of commands

@@ -434,6 +434,48 @@ def main(page: ft.Page):
                 # Close the connection
                 conn.close()
 
+    def deleteLunaAccount(e):
+        """Handles the deletion of a user account"""
+        if not lunaPassword.value:
+            lunaErrorText.color = ft.colors.RED
+            lunaErrorText.value = "Please enter a password"
+            lunaErrorText.update()
+        else:
+            conn = sqlite3.connect('lunaData.db')
+
+            cursor = conn.cursor()
+
+            lunaUsername.value = lunaUsername.value.strip()
+
+            lunaDeleteUser = lunaUsername.value
+
+            # Add the account to the records
+            try:
+                # Check if the username is unique
+                cursor.execute("SELECT id FROM accounts WHERE username = ? AND password = ?", (lunaDeleteUser,
+                                                                                               lunaPassword.value))
+                result = cursor.fetchone()
+
+                if result:
+                    lunaErrorText.value = "Account has been deleted"
+                    lunaErrorText.update()
+                    logOutLunaChat("")
+                    print(result)
+                    cursor.execute("DELETE FROM messages WHERE user_id = ?", (result[0],))
+                    cursor.execute("DELETE FROM reports WHERE user_id = ?", (result[0],))
+                    cursor.execute("DELETE FROM roles WHERE user_id = ?", (result[0],))
+                    cursor.execute("DELETE FROM accounts WHERE username = ?", (lunaDeleteUser,))
+                    conn.commit()
+                    print("LOG account deleted successfully with username:", lunaUsername.value)
+                else:
+                    lunaUsername.error_text = "The password you entered is incorrect"
+                    lunaUsername.update()
+            except sqlite3.Error as e:
+                print("Error:", e)
+            finally:
+                # Close the connection
+                conn.close()
+
     def changeUserStatus(e):
         """Handles the user changing their status"""
         print("Testing User Status Function")
@@ -484,6 +526,11 @@ def main(page: ft.Page):
         """Closes the prior dialog and opens Delete Account Screen dialog"""
         page.close = True
         deleteAccountDialog()
+
+    def closeDeleteAccountDialog(e):
+        """Closes the current dialog"""
+        deleteAccount.open = False
+        page.update()
 
     def retrieveChatLogs():
         """Retrieves the chat logs from the database"""
@@ -783,11 +830,11 @@ def main(page: ft.Page):
         open=True,
         modal=True,
         title=ft.Text("Delete Account", color=titleTextColor),
-        content=ft.Column([lunaUsername, lunaPassword, lunaErrorText], tight=True),
+        content=ft.Column([lunaPassword, lunaErrorText], tight=True),
         actions=[ft.CupertinoButton(text="Back", color=ft.colors.PINK,
-                                    bgcolor=dialogButtonColor, padding=5),
+                                    bgcolor=dialogButtonColor, padding=5, on_click=closeDeleteAccountDialog),
                  ft.CupertinoButton(text="Delete Account", color=ft.colors.PINK,
-                                    bgcolor=dialogButtonColor, padding=5)],
+                                    bgcolor=dialogButtonColor, padding=5, on_click=deleteLunaAccount)],
     )
 
     def loginDialog():  # Display the login alert dialog
@@ -797,6 +844,7 @@ def main(page: ft.Page):
 
     def deleteAccountDialog():
         """Open the Delete Account Dialog"""
+        lunaErrorText.value = "Please enter your password"
         page.open(deleteAccount)
         page.update()
 
@@ -1077,6 +1125,8 @@ def main(page: ft.Page):
                                             ft.Text("            Online", color=ft.colors.BLUE),
                                             ft.Text(f"            Status: {lunaStatus.value}"),
                                             lunaStatus,
+                                            ft.CupertinoButton(text="Delete Account", color=ft.colors.PINK,
+                                                               bgcolor=dialogButtonColor, padding=5, on_click=deleteAccountMenu),
 
                                         ],
                                             expand=3,  # Set the ratio of how much width the column will take up

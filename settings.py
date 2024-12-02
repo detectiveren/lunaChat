@@ -9,6 +9,10 @@ serverPassword = "server_password_here"
 displayServerAddressOnLogin = True
 enableAccountCreation = True
 encryption_key = ""
+# lunaChat System
+chatPortalName = "chat"
+profilePortalName = "profile"
+profilePortalDisplayName = "Profile"
 # Flags
 lunaExperimentalColorOverride = False
 testDatabaseIntegrityOnLaunch = True

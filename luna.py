@@ -322,7 +322,7 @@ def main(page: ft.Page):
                                                                  lunaMessageType="lunaChatMessage", lunaKey=0))
 
         if message == "!lunaBOT":
-            lunaBOTResponse = f"Please enter a parameter when invoking the bot (requested by {lunaUsername.value})"
+            lunaBOTResponse = f"Please enter a parameter when invoking the bot (requested by {lunaUserStorage.value})"
             sendLunaBOTMessage(lunaBOTResponse)
         if "buildNumber" in message:  # If the message contains "buildNumber" then lunaBOT will print out the build number
             lunaBOTResponse = f"Build {buildNumber}"  # lunaBOT's response
@@ -341,7 +341,7 @@ def main(page: ft.Page):
             lunaBOTResponse = "HAPPY WINTER HOLIDAY!"
             sendLunaBOTMessage(lunaBOTResponse)
         if "banned_word_sent" in message:
-            lunaBOTResponse = f"{lunaUsername.value} tried to send a message that contained a banned word"
+            lunaBOTResponse = f"{lunaUserStorage.value} tried to send a message that contained a banned word"
             sendLunaBOTMessage(lunaBOTResponse)
         if "versionInfo" in message:
             lunaBOTResponse = f"lunaChat 1.0\nAlpha 2\nBuild {buildNumber}"
@@ -372,7 +372,7 @@ def main(page: ft.Page):
         except sqlite3.Error as e:
             print("Error:", e)
 
-        print(f"LOG (Message Type: lunaChatMessage) (lunaBOT): {lunaBOTResponse} (requested by {lunaUsername.value})")
+        print(f"LOG (Message Type: lunaChatMessage) (lunaBOT): {lunaBOTResponse} (requested by {lunaUserStorage.value})")
 
     # Function for checking if the server password is correct
     def passwordCheck(e):
@@ -427,6 +427,8 @@ def main(page: ft.Page):
                                    (lunaUsername.value, lunaPassword.value, 0))
                     conn.commit()
                     print("LOG account created successfully with ID:", cursor.lastrowid)
+                    lunaUsername.value = ""
+                    lunaPassword.value = ""
                     accountCreatedSuccessfullyScreen()
             except sqlite3.Error as e:
                 print("Error:", e)
@@ -445,9 +447,9 @@ def main(page: ft.Page):
 
             cursor = conn.cursor()
 
-            lunaUsername.value = lunaUsername.value.strip()
+            lunaUserStorage.value = lunaUserStorage.value.strip()
 
-            lunaDeleteUser = lunaUsername.value
+            lunaDeleteUser = lunaUserStorage.value
 
             # Add the account to the records
             try:
@@ -466,7 +468,9 @@ def main(page: ft.Page):
                     cursor.execute("DELETE FROM roles WHERE user_id = ?", (result[0],))
                     cursor.execute("DELETE FROM accounts WHERE username = ?", (lunaDeleteUser,))
                     conn.commit()
-                    print("LOG account deleted successfully with username:", lunaUsername.value)
+                    print("LOG account deleted successfully with username:", lunaUserStorage.value)
+                    lunaUsername.value = ""
+                    lunaPassword.value = ""
                 else:
                     lunaUsername.error_text = "The password you entered is incorrect"
                     lunaUsername.update()
@@ -483,15 +487,18 @@ def main(page: ft.Page):
         conn = sqlite3.connect('lunaData.db')
         cursor = conn.cursor()
 
+        lunaStatusStorage.value = lunaStatus.value
+        lunaStatus.value = ""
+
         try:
             # Check if the username and password match an existing account
             cursor.execute("SELECT id FROM accounts WHERE username = ? AND password = ?",
-                           (lunaUsername.value, lunaPassword.value))
+                           (lunaUserStorage.value, lunaPassStorage.value))
             grabUserID = cursor.fetchone()
             userID = grabUserID[0]
 
             cursor.execute("UPDATE accounts SET customStatusMessage = ? WHERE id = ?",
-                           (lunaStatus.value, userID))
+                           (lunaStatusStorage.value, userID))
             conn.commit()
 
         except sqlite3.Error as e:
@@ -595,7 +602,7 @@ def main(page: ft.Page):
             try:
                 # Check if the username and password match an existing account
                 cursor.execute("SELECT id FROM accounts WHERE username = ? AND password = ?",
-                               (lunaUsername.value, lunaPassword.value))
+                               (lunaUserStorage.value, lunaPassStorage.value))
                 grabUserID = cursor.fetchone()
                 userID = grabUserID[0]
 
@@ -610,7 +617,7 @@ def main(page: ft.Page):
             standardMessage()
             lunaBOT(newMessage.value)
         elif any(imgFormat in newMessage.value for imgFormat in imageFormats):  # If the message contains an image link
-            print(f"LOG (Message Type: lunaImageMessage) ({lunaUsername.value}) sent an image with a link")
+            print(f"LOG (Message Type: lunaImageMessage) ({lunaUserStorage.value}) sent an image with a link")
             page.pubsub.send_all_on_topic("Default", LunaMessage(lunaUser=page.session.get('lunaUsername'),
                                                                  lunaText=newMessage.value,
                                                                  lunaMessageType="lunaImageMessage", lunaKey=0))
@@ -630,7 +637,7 @@ def main(page: ft.Page):
         else:
             standardMessage()
         if not emptyMsg:  # If the message was not empty
-            print(f"LOG (Message Type: lunaChatMessage) ({lunaUsername.value}): {newMessage.value}")
+            print(f"LOG (Message Type: lunaChatMessage) ({lunaUserStorage.value}): {newMessage.value}")
         # Log the chat messages to the terminal
         newMessage.value = ""  # Resets the value
         page.update()  # Updates the page
@@ -682,10 +689,14 @@ def main(page: ft.Page):
                 result = cursor.fetchone()
 
                 if result:
-                    print(f"LOG {lunaUsername.value} has logged in")
+                    lunaUserStorage.value = lunaUsername.value
+                    lunaUsername.value = ""
+                    lunaPassStorage.value = lunaPassword.value
+                    lunaPassword.value = ""
+                    print(f"LOG {lunaUserStorage.value} has logged in")
                     # Optionally, you can update the UI to reflect the successful login
                     # Add your post-login logic here (e.g., redirect to chat interface)
-                    page.session.set("lunaUsername", lunaUsername.value)  # Takes in the username value that was entered
+                    page.session.set("lunaUsername", lunaUserStorage.value)  # Takes in the username value that was entered
                     page.close = True
 
                     userID = result[0]
@@ -698,25 +709,25 @@ def main(page: ft.Page):
                     customStatusMessage = fetchUserStatus[0]
                     lunaStatus.value = customStatusMessage
                     if settings.displayServerAddressOnLogin:  # If the value is true then display the server address and port
-                        page.pubsub.send_all_on_topic("Default", LunaMessage(lunaUser=lunaUsername.value,
-                                                                             lunaText=f"{lunaUsername.value} has joined {settings.lunaChatName}'s lunaChat instance "
+                        page.pubsub.send_all_on_topic("Default", LunaMessage(lunaUser=lunaUserStorage.value,
+                                                                             lunaText=f"{lunaUserStorage.value} has joined {settings.lunaChatName}'s lunaChat instance "
                                                                                       f"({settings.host}:{settings.port})",
                                                                              lunaMessageType="lunaLoginMessage",
                                                                              lunaKey=0))
                     else:
-                        page.pubsub.send_all_on_topic("Default", LunaMessage(lunaUser=lunaUsername.value,
-                                                                             lunaText=f"{lunaUsername.value} has joined {settings.lunaChatName}'s lunaChat instance",
+                        page.pubsub.send_all_on_topic("Default", LunaMessage(lunaUser=lunaUserStorage.value,
+                                                                             lunaText=f"{lunaUserStorage.value} has joined {settings.lunaChatName}'s lunaChat instance",
                                                                              lunaMessageType="lunaLoginMessage",
                                                                              lunaKey=0))
-                    page.go('/chat')
+                    page.go(f'/{settings.chatPortalName}')
                     print(
-                        f"LOG (Message Type: lunaLoginMessage) ({lunaUsername.value}) has joined {settings.lunaChatName}'s "
+                        f"LOG (Message Type: lunaLoginMessage) ({lunaUserStorage.value}) has joined {settings.lunaChatName}'s "
                         f"lunaChat instance ({settings.host}:{settings.port})")
                     # Display the login message in the terminal
                     retrieveChatLogs()
 
                     with open('./config/usernamesInUse.txt', 'a') as f:
-                        f.write(f"{lunaUsername.value}\n")  # Append the username to the list
+                        f.write(f"{lunaUserStorage.value}\n")  # Append the username to the list
                         f.close()
                 else:
                     lunaErrorText.color = ft.colors.RED
@@ -762,6 +773,9 @@ def main(page: ft.Page):
                                          on_submit=joinClick,
                                          password=True,
                                          can_reveal_password=True)
+    lunaUserStorage = ft.Text("")
+    lunaPassStorage = ft.Text("")
+    lunaStatusStorage = ft.Text("")
     lunaServerPassword = ft.CupertinoTextField(placeholder_text="Enter password", color=messageTypeColor,
                                                bgcolor=dialogMessageBoxColor,
                                                placeholder_style=ft.TextStyle(size=15, color=messageTypeColor),
@@ -998,19 +1012,19 @@ def main(page: ft.Page):
             usernamesInUse = readUsernames.readlines()  # Read all the usernames from the textfile into the list
             usernamesInUse = [line.rstrip('\n') for line in usernamesInUse]
 
-        if lunaUsername.value.strip() in usernamesInUse:
-            usernamesInUse.remove(f"{lunaUsername.value.strip()}")  # Free up the username from the list
+        if lunaUserStorage.value.strip() in usernamesInUse:
+            usernamesInUse.remove(f"{lunaUserStorage.value.strip()}")  # Free up the username from the list
             with open('./config/usernamesInUse.txt', "w") as writeUsernames:
                 for username in usernamesInUse:
                     writeUsernames.write(username + "\n")
 
-            if lunaUsername.value != "":
-                page.pubsub.send_all_on_topic("Default", LunaMessage(lunaUser=lunaUsername.value,
-                                                                     lunaText=f"{lunaUsername.value} has logged out of {settings.lunaChatName}'s "
+            if lunaUserStorage.value != "":
+                page.pubsub.send_all_on_topic("Default", LunaMessage(lunaUser=lunaUserStorage.value,
+                                                                     lunaText=f"{lunaUserStorage.value} has logged out of {settings.lunaChatName}'s "
                                                                               f"lunaChat instance",
                                                                      lunaMessageType="lunaLoginMessage", lunaKey=0))
 
-                print(f"LOG (Message Type: lunaLoginMessage) {lunaUsername.value.strip()} has logged out of "
+                print(f"LOG (Message Type: lunaLoginMessage) {lunaUserStorage.value.strip()} has logged out of "
                       f"{settings.lunaChatName}'s lunaChat instance")
 
         if settings.serverPasswordRequired:  # If the server requires a password open up that dialog
@@ -1083,19 +1097,19 @@ def main(page: ft.Page):
             )
         )
 
-        if page.route == "/profile":
-            page.go(f'/profile/{lunaUsername.value}')
+        if page.route == f"/{settings.profilePortalName}":
+            page.go(f'/{settings.profilePortalName}/{lunaUserStorage.value}')
 
-        if page.route == f"/profile/{lunaUsername.value}":
-            if lunaUsername.value == "":
+        if page.route == f"/{settings.profilePortalName}/{lunaUserStorage.value}":
+            if lunaUserStorage.value == "":
                 page.go('/')
             else:
                 page.views.append(
                     ft.View(
-                        f"/profile/{lunaUsername.value}",
+                        f"/{settings.profilePortalName}/{lunaUserStorage.value}",
                         [
                             ft.AppBar(
-                                title=ft.Text(f"{lunaUsername.value}'s Profile | lunaChat", size=20,
+                                title=ft.Text(f"{lunaUserStorage.value}'s {settings.profilePortalDisplayName} | lunaChat", size=20,
                                               weight=ft.FontWeight.BOLD,
                                               color=titleTextColor),
                                 automatically_imply_leading=False,
@@ -1108,7 +1122,7 @@ def main(page: ft.Page):
                                                   icon_color=ft.colors.PINK),
                                     ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.colors.PINK),
                                     ft.IconButton(ft.icons.ACCOUNT_CIRCLE, icon_color=ft.colors.PINK,
-                                                  on_click=lambda _: page.go("/chat"))
+                                                  on_click=lambda _: page.go(f"/{settings.chatPortalName}"))
                                 ]),
                             ft.Container(
                                 content=ft.Container(
@@ -1117,13 +1131,13 @@ def main(page: ft.Page):
                                             ft.Text("Profile Information"),
                                             ft.Row(controls=[
                                                 ft.CircleAvatar(  # The avatar that will pop up in the message container
-                                                    content=ft.Text(getInitials(lunaUsername.value)),
+                                                    content=ft.Text(getInitials(lunaUserStorage.value)),
                                                     color=ft.colors.WHITE,
-                                                    bgcolor=getAvatarColor(lunaUsername.value)),
-                                                ft.Text(f"{lunaUsername.value}"),
+                                                    bgcolor=getAvatarColor(lunaUserStorage.value)),
+                                                ft.Text(f"{lunaUserStorage.value}"),
                                             ]),
                                             ft.Text("            Online", color=ft.colors.BLUE),
-                                            ft.Text(f"            Status: {lunaStatus.value}"),
+                                            ft.Text(f"            Status: {lunaStatusStorage.value}"),
                                             lunaStatus,
                                             ft.CupertinoButton(text="Delete Account", color=ft.colors.PINK,
                                                                bgcolor=dialogButtonColor, padding=5, on_click=deleteAccountMenu),
@@ -1152,13 +1166,13 @@ def main(page: ft.Page):
                     )
                 )
 
-        if page.route == "/chat":
-            if lunaUsername.value == "":
+        if page.route == f"/{settings.chatPortalName}":
+            if lunaUserStorage.value == "":
                 page.go('/')
             else:
                 page.views.append(
                     ft.View(
-                        "/chat",
+                        f"/{settings.chatPortalName}",
                         [
                             ft.AppBar(
                                 title=ft.Text(f"{settings.lunaChatName} | lunaChat", size=20, weight=ft.FontWeight.BOLD,
@@ -1172,7 +1186,7 @@ def main(page: ft.Page):
                                                   icon_color=ft.colors.PINK),
                                     ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.colors.PINK),
                                     ft.IconButton(ft.icons.ACCOUNT_CIRCLE, icon_color=ft.colors.PINK,
-                                                  on_click=lambda _: page.go(f"/profile/{lunaUsername.value}"))
+                                                  on_click=lambda _: page.go(f"/{settings.profilePortalName}/{lunaUserStorage.value}"))
                                 ],
                                 automatically_imply_leading=False
                             ),

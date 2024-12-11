@@ -344,7 +344,7 @@ def main(page: ft.Page):
             lunaBOTResponse = f"{lunaUsername.value} tried to send a message that contained a banned word"
             sendLunaBOTMessage(lunaBOTResponse)
         if "versionInfo" in message:
-            lunaBOTResponse = f"lunaChat 1.0\nAlpha 2\nBuild {buildNumber}"
+            lunaBOTResponse = f"lunaChat 1.0\nAlpha 3\nBuild {buildNumber}"
             sendLunaBOTMessage(lunaBOTResponse)
         if "ban" in message:
             messageSplit = message.split()

@@ -372,7 +372,8 @@ def main(page: ft.Page):
         except sqlite3.Error as e:
             print("Error:", e)
 
-        print(f"LOG (Message Type: lunaChatMessage) (lunaBOT): {lunaBOTResponse} (requested by {lunaUserStorage.value})")
+        print(
+            f"LOG (Message Type: lunaChatMessage) (lunaBOT): {lunaBOTResponse} (requested by {lunaUserStorage.value})")
 
     # Function for checking if the server password is correct
     def passwordCheck(e):
@@ -472,8 +473,50 @@ def main(page: ft.Page):
                     lunaUsername.value = ""
                     lunaPassword.value = ""
                 else:
-                    lunaUsername.error_text = "The password you entered is incorrect"
-                    lunaUsername.update()
+                    lunaErrorText.color = ft.colors.RED
+                    lunaErrorText.value = "The password you entered is incorrect"
+                    lunaErrorText.update()
+            except sqlite3.Error as e:
+                print("Error:", e)
+            finally:
+                # Close the connection
+                conn.close()
+
+    def changeUserPassword(e):
+        """Handles changing a user's password"""
+        if not lunaPassword.value:
+            lunaErrorText.color = ft.colors.RED
+            lunaErrorText.value = "Please enter a password"
+            lunaErrorText.update()
+        else:
+            conn = sqlite3.connect('lunaData.db')
+
+            cursor = conn.cursor()
+
+            lunaCurrentPassword = lunaPassword.value
+
+            try:
+                # Check if the username and password match an existing account
+                cursor.execute("SELECT id FROM accounts WHERE username = ? AND password = ?",
+                               (lunaUserStorage.value, lunaCurrentPassword))
+
+                grabUserID = cursor.fetchone()
+
+                if grabUserID:
+                    userID = grabUserID[0]
+
+                    cursor.execute("UPDATE accounts SET password = ? WHERE id = ?",
+                                   (lunaChangePassword.value, userID))
+                    conn.commit()
+
+                    print("LOG account changed password successfully with username:", lunaUserStorage.value)
+
+                    logOutLunaChat("")
+                else:
+                    lunaErrorText.color = ft.colors.RED
+                    lunaErrorText.value = "The old password you entered is incorrect"
+                    lunaErrorText.update()
+
             except sqlite3.Error as e:
                 print("Error:", e)
             finally:
@@ -534,9 +577,19 @@ def main(page: ft.Page):
         page.close = True
         deleteAccountDialog()
 
+    def changePasswordMenu(e):
+        """Closes the prior dialog and opens Change Password Screen dialog"""
+        page.close = True
+        changePasswordDialog()
+
     def closeDeleteAccountDialog(e):
-        """Closes the current dialog"""
+        """Closes the Delete Account dialog"""
         deleteAccount.open = False
+        page.update()
+
+    def closeChangePasswordDialog(e):
+        """Closes the Change Password dialog"""
+        changePassword.open = False
         page.update()
 
     def retrieveChatLogs():
@@ -696,7 +749,8 @@ def main(page: ft.Page):
                     print(f"LOG {lunaUserStorage.value} has logged in")
                     # Optionally, you can update the UI to reflect the successful login
                     # Add your post-login logic here (e.g., redirect to chat interface)
-                    page.session.set("lunaUsername", lunaUserStorage.value)  # Takes in the username value that was entered
+                    page.session.set("lunaUsername",
+                                     lunaUserStorage.value)  # Takes in the username value that was entered
                     page.close = True
 
                     userID = result[0]
@@ -773,6 +827,12 @@ def main(page: ft.Page):
                                          on_submit=joinClick,
                                          password=True,
                                          can_reveal_password=True)
+    lunaChangePassword = ft.CupertinoTextField(placeholder_text="Enter your new password", color=messageTypeColor,
+                                               bgcolor=dialogMessageBoxColor,
+                                               placeholder_style=ft.TextStyle(size=15, color=messageTypeColor),
+                                               on_submit=joinClick,
+                                               password=True,
+                                               can_reveal_password=True)
     lunaUserStorage = ft.Text("")
     lunaPassStorage = ft.Text("")
     lunaStatusStorage = ft.Text("")
@@ -840,7 +900,7 @@ def main(page: ft.Page):
                                     bgcolor=dialogButtonColor, padding=5)],
     )
 
-    deleteAccount = ft.CupertinoAlertDialog(  # Add on_click functionality
+    deleteAccount = ft.CupertinoAlertDialog(
         open=True,
         modal=True,
         title=ft.Text("Delete Account", color=titleTextColor),
@@ -849,6 +909,17 @@ def main(page: ft.Page):
                                     bgcolor=dialogButtonColor, padding=5, on_click=closeDeleteAccountDialog),
                  ft.CupertinoButton(text="Delete Account", color=ft.colors.PINK,
                                     bgcolor=dialogButtonColor, padding=5, on_click=deleteLunaAccount)],
+    )
+
+    changePassword = ft.CupertinoAlertDialog(  # Add on_click functionality
+        open=True,
+        modal=True,
+        title=ft.Text("Change Password", color=titleTextColor),
+        content=ft.Column([lunaPassword, lunaChangePassword, lunaErrorText], tight=True),
+        actions=[ft.CupertinoButton(text="Back", color=ft.colors.PINK,
+                                    bgcolor=dialogButtonColor, padding=5, on_click=closeChangePasswordDialog),
+                 ft.CupertinoButton(text="Save", color=ft.colors.PINK,
+                                    bgcolor=dialogButtonColor, padding=5, on_click=changeUserPassword)],
     )
 
     def loginDialog():  # Display the login alert dialog
@@ -860,6 +931,12 @@ def main(page: ft.Page):
         """Open the Delete Account Dialog"""
         lunaErrorText.value = "Please enter your password"
         page.open(deleteAccount)
+        page.update()
+
+    def changePasswordDialog():
+        """Open the Delete Account Dialog"""
+        lunaErrorText.value = "Please enter your current password"
+        page.open(changePassword)
         page.update()
 
     passwordDialog = ft.CupertinoAlertDialog(
@@ -989,22 +1066,6 @@ def main(page: ft.Page):
 
         return usernameList, username_count
 
-    membersDrawer = ft.NavigationDrawer(  # The theming of the membersDrawer (username list)
-        bgcolor=pageBackgroundColor,
-        indicator_color=None,
-        surface_tint_color=chatMessageColor,
-    )
-
-    def showMemberDrawer(e):  # Show the username list once the button is clicked
-        membersDrawer.controls.clear()
-        membersDrawer.selected_index = -1
-        getUserList = addUsersToList()
-        membersDrawer.controls.extend(
-            [ft.Text(f"        Online - {getUserList[1]} Users Active", color=chatMessageColor)])
-        membersDrawer.controls.extend(getUserList[0])
-        # membersDrawer.controls.extend([ft.Text("        Offline")])
-        page.show_end_drawer(membersDrawer)
-
     def logOutLunaChat(e):
         """Logs the user out of the lunaChat instance"""
         page.go('/')
@@ -1037,33 +1098,6 @@ def main(page: ft.Page):
 
         lunaUsername.value = ""
         lunaPassword.value = ""
-
-    # This the bar on the top of the app that contains the title and icon buttons
-    # page.appbar = ft.AppBar(
-    #    title=ft.Text(f"{settings.lunaChatName} | lunaChat", size=20, weight=ft.FontWeight.BOLD, color=titleTextColor),
-    #    center_title=False,
-    #    bgcolor=pageBackgroundColor,
-    #    toolbar_height=40,
-    #    actions=[
-    #        ft.IconButton(ft.icons.INFO, on_click=openVersionInfo, icon_color=ft.colors.PINK),
-    #        ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription, icon_color=ft.colors.PINK),
-    #        ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.colors.PINK),
-    #        ft.IconButton(ft.icons.SUPERVISED_USER_CIRCLE, icon_color=ft.colors.PINK, on_click=showMemberDrawer)
-    #    ]
-
-    # )
-
-    # This is where the message container, message box and message button are added onto the app
-    # page.add(lunaChat,
-    #         ft.Row(controls=[newMessage,
-    #                          ft.IconButton(
-    #                              icon=ft.icons.SEND_ROUNDED,
-    #                              bgcolor=ft.colors.PINK_100,
-    #                              icon_color=ft.colors.PINK,
-    #                              icon_size=40,
-    #                              on_click=sendClick
-    #                          )])
-    #         )
 
     def onDisconnect(e: ft.PageDisconnectedException):
         """Log out the user once they end the session"""
@@ -1109,9 +1143,11 @@ def main(page: ft.Page):
                         f"/{settings.profilePortalName}/{lunaUserStorage.value}",
                         [
                             ft.AppBar(
-                                title=ft.Text(f"{lunaUserStorage.value}'s {settings.profilePortalDisplayName} | lunaChat", size=20,
-                                              weight=ft.FontWeight.BOLD,
-                                              color=titleTextColor),
+                                title=ft.Text(
+                                    f"{lunaUserStorage.value}'s {settings.profilePortalDisplayName} | lunaChat",
+                                    size=20,
+                                    weight=ft.FontWeight.BOLD,
+                                    color=titleTextColor),
                                 automatically_imply_leading=False,
                                 center_title=False,
                                 bgcolor=pageBackgroundColor,
@@ -1139,8 +1175,14 @@ def main(page: ft.Page):
                                             ft.Text("            Online", color=ft.colors.BLUE),
                                             ft.Text(f"            Status: {lunaStatusStorage.value}"),
                                             lunaStatus,
-                                            ft.CupertinoButton(text="Delete Account", color=ft.colors.PINK,
-                                                               bgcolor=dialogButtonColor, padding=5, on_click=deleteAccountMenu),
+                                            ft.Row(controls=[
+                                                ft.CupertinoButton(text="Change Password", color=ft.colors.PINK,
+                                                                   bgcolor=dialogButtonColor, padding=5,
+                                                                   on_click=changePasswordMenu),
+                                                ft.CupertinoButton(text="Delete Account", color=ft.colors.PINK,
+                                                                   bgcolor=dialogButtonColor, padding=5,
+                                                                   on_click=deleteAccountMenu)
+                                            ]),
 
                                         ],
                                             expand=3,  # Set the ratio of how much width the column will take up
@@ -1186,7 +1228,8 @@ def main(page: ft.Page):
                                                   icon_color=ft.colors.PINK),
                                     ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.colors.PINK),
                                     ft.IconButton(ft.icons.ACCOUNT_CIRCLE, icon_color=ft.colors.PINK,
-                                                  on_click=lambda _: page.go(f"/{settings.profilePortalName}/{lunaUserStorage.value}"))
+                                                  on_click=lambda _: page.go(
+                                                      f"/{settings.profilePortalName}/{lunaUserStorage.value}"))
                                 ],
                                 automatically_imply_leading=False
                             ),

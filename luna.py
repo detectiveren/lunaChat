@@ -344,7 +344,7 @@ def main(page: ft.Page):
             lunaBOTResponse = f"{lunaUserStorage.value} tried to send a message that contained a banned word"
             sendLunaBOTMessage(lunaBOTResponse)
         if "versionInfo" in message:
-            lunaBOTResponse = f"lunaChat 1.0\nAlpha 2\nBuild {buildNumber}"
+            lunaBOTResponse = f"lunaChat 1.0\nAlpha 3\nBuild {buildNumber}"
             sendLunaBOTMessage(lunaBOTResponse)
         if "ban" in message:
             messageSplit = message.split()
@@ -842,6 +842,9 @@ def main(page: ft.Page):
                                                on_submit=passwordCheck, password=True, can_reveal_password=True)
     lunaStatus = ft.CupertinoTextField(placeholder_text="Update your status", on_submit=changeUserStatus, width=250)
     lunaErrorText = ft.Text("Please enter a username and password", color=ft.colors.WHITE)
+    lunaSearch = ft.CupertinoTextField(placeholder_text="Search", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
+                                       placeholder_style=ft.TextStyle(size=15, color= messageTypeColor),
+                                       on_submit=page.go(f"/search/profile"))
 
     page.title = "lunaChat"
     page.bgcolor = pageBackgroundColor
@@ -1153,6 +1156,8 @@ def main(page: ft.Page):
                                 bgcolor=pageBackgroundColor,
                                 toolbar_height=40,
                                 actions=[
+                                    ft.IconButton(ft.icons.SEARCH, icon_color=ft.colors.PINK, on_click=lambda _:
+                                    page.go("/search")),
                                     ft.IconButton(ft.icons.INFO, on_click=openVersionInfo, icon_color=ft.colors.PINK),
                                     ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription,
                                                   icon_color=ft.colors.PINK),
@@ -1223,6 +1228,8 @@ def main(page: ft.Page):
                                 bgcolor=pageBackgroundColor,
                                 toolbar_height=40,
                                 actions=[
+                                    ft.IconButton(ft.icons.SEARCH, icon_color=ft.colors.PINK, on_click=lambda _:
+                                    page.go("/search")),
                                     ft.IconButton(ft.icons.INFO, on_click=openVersionInfo, icon_color=ft.colors.PINK),
                                     ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription,
                                                   icon_color=ft.colors.PINK),
@@ -1242,6 +1249,56 @@ def main(page: ft.Page):
                                                  icon_size=20,
                                                  on_click=sendClick
                                              )])
+
+                        ],
+                        bgcolor=pageBackgroundColor,
+
+                    )
+                )
+
+        if page.route == f"/search":
+            if lunaUsername.value == "":
+                page.go('/')
+            else:
+                page.views.append(
+                    ft.View(
+                        f"/search",
+                        [
+                            ft.AppBar(
+                                title=ft.Text(f"Search | lunaChat", size=20,
+                                                weight=ft.FontWeight.BOLD,
+                                                color=titleTextColor),
+                                automatically_imply_leading=False,
+                                center_title=False,
+                                bgcolor=pageBackgroundColor,
+                                toolbar_height=40,
+                                actions=[
+                                    ft.IconButton(ft.icons.SEARCH, icon_color=ft.colors.PINK, on_click=lambda _:
+                                    page.go("/chat")),
+                                    ft.IconButton(ft.icons.INFO, on_click=openVersionInfo,
+                                                    icon_color=ft.colors.PINK),
+                                    ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription,
+                                                    icon_color=ft.colors.PINK),
+                                    ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat,
+                                                    icon_color=ft.colors.PINK),
+                                    ft.IconButton(ft.icons.ACCOUNT_CIRCLE, icon_color=ft.colors.PINK,
+                                                    on_click=lambda _: page.go("/profile"))
+                                ]),
+                            ft.Container(
+                                content=ft.Container(
+                                    content=ft.Column(controls=[
+                                        ft.Text("Search"),
+                                        lunaSearch
+
+                                    ],
+                                        alignment=ft.MainAxisAlignment.CENTER,
+                                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                        width=500
+                                    ), alignment=ft.alignment.center
+
+
+                                )
+                            )
 
                         ],
                         bgcolor=pageBackgroundColor,

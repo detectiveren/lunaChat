@@ -1250,7 +1250,7 @@ def main(page: ft.Page):
                 )
 
         if page.route == f"/profile/{lunaUserProfileStorage.value}":
-            if lunaUsername.value == "":
+            if lunaUserStorage.value == "":
                 page.go('/')
             else:
                 page.views.append(
@@ -1314,8 +1314,8 @@ def main(page: ft.Page):
                     )
                 )
 
-        if page.route == "/chat":
-            if lunaUsername.value == "":
+        if page.route == f"/{settings.chatPortalName}":
+            if lunaUserStorage.value == "":
                 page.go('/')
             else:
                 page.views.append(
@@ -1358,7 +1358,7 @@ def main(page: ft.Page):
                 )
 
         if page.route == f"/search":
-            if lunaUsername.value == "":
+            if lunaUserStorage.value == "":
                 page.go('/')
             else:
                 page.views.append(

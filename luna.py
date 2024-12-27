@@ -519,6 +519,40 @@ def main(page: ft.Page):
         page.pubsub.unsubscribe_topic("ChatLogs")
         page.pubsub.subscribe_topic("Default", onLunaMessage)
 
+    def lunaSearchQuery(e):
+        lunaUserProfileStorage.value = lunaSearch.value
+        lunaSearch.value = ""
+
+        conn = sqlite3.connect('lunaData.db')
+        cursor = conn.cursor()
+
+        try:
+            # Check if the username and password match an existing account
+            cursor.execute("SELECT username FROM accounts WHERE username = ?",
+                           (lunaUserProfileStorage.value,))
+            grabUsername = cursor.fetchone()
+
+            if grabUsername:
+                username = grabUsername[0]
+
+                cursor.execute("SELECT customStatusMessage FROM accounts WHERE username = ?",
+                               (username,))
+
+                fetchUserStatus = cursor.fetchone()
+
+                customStatusMessage = fetchUserStatus[0]
+
+                if str(customStatusMessage) == "None":
+                    lunaUserProfileStatusStorage.value = f"No status set by {username}"
+                else:
+                    lunaUserProfileStatusStorage.value = str(customStatusMessage)
+
+                page.go(f"/profile/{lunaUserProfileStorage.value}")
+
+        except sqlite3.Error as e:
+            print("Error:", e)
+
+
     # Function for when a user sends a message
     def sendClick(e):
         """Handles the message that was sent by the user"""
@@ -719,11 +753,13 @@ def main(page: ft.Page):
                                                bgcolor=dialogMessageBoxColor,
                                                placeholder_style=ft.TextStyle(size=15, color=messageTypeColor),
                                                on_submit=passwordCheck, password=True, can_reveal_password=True)
+    lunaUserProfileStorage = ft.Text("")
+    lunaUserProfileStatusStorage = ft.Text("")
     lunaStatus = ft.CupertinoTextField(placeholder_text="Update your status", on_submit=changeUserStatus, width=250)
     lunaErrorText = ft.Text("Please enter a username and password", color=ft.colors.WHITE)
     lunaSearch = ft.CupertinoTextField(placeholder_text="Search", color=messageTypeColor, bgcolor=dialogMessageBoxColor,
                                        placeholder_style=ft.TextStyle(size=15, color= messageTypeColor),
-                                       on_submit=page.go(f"/search/profile"))
+                                       on_submit=lunaSearchQuery)
 
     page.title = "lunaChat"
     page.bgcolor = pageBackgroundColor
@@ -1082,6 +1118,71 @@ def main(page: ft.Page):
                                             ft.Text("            Online", color=ft.colors.BLUE),
                                             ft.Text(f"            Status: {lunaStatus.value}"),
                                             lunaStatus,
+
+                                        ],
+                                            expand=3,  # Set the ratio of how much width the column will take up
+                                            alignment=ft.MainAxisAlignment.START,  # Set the alignment for this column
+                                            height=300  # Set the height of the column
+                                        ),
+                                        ft.Column(controls=[
+                                            ft.Text(f"Online - {getUserList[1]} Users Active", color=chatMessageColor),
+                                            ft.Column(controls=[
+                                                *getUserList[0],
+                                            ], scroll=ft.ScrollMode.ADAPTIVE)
+                                        ],
+                                            expand=1,  # Set the ratio of how much width the column will take up
+                                            alignment=ft.MainAxisAlignment.START,  # Set the alignment for this column
+                                            height=300  # Set the height of the column
+                                        )
+                                    ], alignment=ft.MainAxisAlignment.START
+                                    ), height=300
+                                )
+                            )
+                        ],
+                        bgcolor=pageBackgroundColor
+                    )
+                )
+
+        if page.route == f"/profile/{lunaUserProfileStorage.value}":
+            if lunaUsername.value == "":
+                page.go('/')
+            else:
+                page.views.append(
+                    ft.View(
+                        f"/profile/{lunaUserProfileStorage.value}",
+                        [
+                            ft.AppBar(
+                                title=ft.Text(f"{lunaUserProfileStorage.value}'s Profile | lunaChat", size=20,
+                                              weight=ft.FontWeight.BOLD,
+                                              color=titleTextColor),
+                                automatically_imply_leading=False,
+                                center_title=False,
+                                bgcolor=pageBackgroundColor,
+                                toolbar_height=40,
+                                actions=[
+                                    ft.IconButton(ft.icons.SEARCH, icon_color=ft.colors.PINK, on_click=lambda _:
+                                    page.go("/search")),
+                                    ft.IconButton(ft.icons.INFO, on_click=openVersionInfo, icon_color=ft.colors.PINK),
+                                    ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription,
+                                                  icon_color=ft.colors.PINK),
+                                    ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.colors.PINK),
+                                    ft.IconButton(ft.icons.ACCOUNT_CIRCLE, icon_color=ft.colors.PINK,
+                                                  on_click=lambda _: page.go("/chat"))
+                                ]),
+                            ft.Container(
+                                content=ft.Container(
+                                    content=ft.Row(controls=[
+                                        ft.Column(controls=[
+                                            ft.Text("Profile Information"),
+                                            ft.Row(controls=[
+                                                ft.CircleAvatar(  # The avatar that will pop up in the message container
+                                                    content=ft.Text(getInitials(lunaUserProfileStorage.value)),
+                                                    color=ft.colors.WHITE,
+                                                    bgcolor=getAvatarColor(lunaUserProfileStorage.value)),
+                                                ft.Text(f"{lunaUserProfileStorage.value}"),
+                                            ]),
+                                            ft.Text("            Activity Status Unknown", color=ft.colors.BLUE),
+                                            ft.Text(f"            Status: {lunaUserProfileStatusStorage.value}"),
 
                                         ],
                                             expand=3,  # Set the ratio of how much width the column will take up

@@ -68,19 +68,19 @@ def getInitials(lunaUser: str):
 
 def getAvatarColor(lunaUser: str):  # Get Avatar colors
     searchForColors = [  # Array of Avatar colors
-        ft.colors.AMBER,
-        ft.colors.BLUE,
-        ft.colors.BROWN,
-        ft.colors.CYAN,
-        ft.colors.GREEN,
-        ft.colors.INDIGO,
-        ft.colors.LIME,
-        ft.colors.ORANGE,
-        ft.colors.PINK,
-        ft.colors.PURPLE,
-        ft.colors.RED,
-        ft.colors.TEAL,
-        ft.colors.YELLOW,
+        ft.Colors.AMBER,
+        ft.Colors.BLUE,
+        ft.Colors.BROWN,
+        ft.Colors.CYAN,
+        ft.Colors.GREEN,
+        ft.Colors.INDIGO,
+        ft.Colors.LIME,
+        ft.Colors.ORANGE,
+        ft.Colors.PINK,
+        ft.Colors.PURPLE,
+        ft.Colors.RED,
+        ft.Colors.TEAL,
+        ft.Colors.YELLOW,
     ]
     return searchForColors[hash(lunaUser) % len(searchForColors)]
 
@@ -139,7 +139,7 @@ class lunaChatMessage(ft.Row):
         self.controls = [  # This is where the message container is, avatar, username and message are in this container
             ft.CircleAvatar(  # The avatar that will pop up in the message container
                 content=ft.Text(getInitials(message.lunaUser)),
-                color=ft.colors.WHITE,
+                color=ft.Colors.WHITE,
                 bgcolor=getAvatarColor(message.lunaUser)
             ),
             ft.Column(
@@ -164,14 +164,14 @@ class lunaImageMessage(ft.Row):
         self.controls = [
             ft.CircleAvatar(  # The avatar that will pop up in the message container
                 content=ft.Text(getInitials(imageMessage.lunaUser)),
-                color=ft.colors.WHITE,
+                color=ft.Colors.WHITE,
                 bgcolor=getAvatarColor(imageMessage.lunaUser)
             ),
             ft.Column(
                 [
-                    ft.Text(imageMessage.lunaUser, color=ft.colors.PINK),
+                    ft.Text(imageMessage.lunaUser, color=ft.Colors.PINK),
                     # The username that will pop up in the message container
-                    ft.Text(imageMessage.lunaText, selectable=True, color=ft.colors.BLUE),
+                    ft.Text(imageMessage.lunaText, selectable=True, color=ft.Colors.BLUE),
                     # The message that will pop up in the message container
                     ft.Image(
                         src=f"{imageMessage.lunaText}",  # The source being the image URL
@@ -205,20 +205,20 @@ class lunaVideoMessage(ft.Row):
         self.controls = [
             ft.CircleAvatar(  # The avatar that will pop up in the message container
                 content=ft.Text(getInitials(videoMessage.lunaUser)),
-                color=ft.colors.WHITE,
+                color=ft.Colors.WHITE,
                 bgcolor=getAvatarColor(videoMessage.lunaUser)
             ),
             ft.Column(
                 [
-                    ft.Text(videoMessage.lunaUser, color=ft.colors.PINK),
+                    ft.Text(videoMessage.lunaUser, color=ft.Colors.PINK),
                     # The username that will pop up in the message container
-                    ft.Text(videoMessage.lunaText, selectable=True, color=ft.colors.BLUE),
+                    ft.Text(videoMessage.lunaText, selectable=True, color=ft.Colors.BLUE),
                     # The message that will pop up in the message container
                     ft.Video(
                         expand=True,
                         playlist=videoEmbed,
                         playlist_mode=ft.PlaylistMode.LOOP,
-                        fill_color=ft.colors.BLUE_400,
+                        fill_color=ft.Colors.BLUE_400,
                         aspect_ratio=16 / 9,
                         volume=100,
                         autoplay=True,
@@ -385,11 +385,11 @@ def main(page: ft.Page):
                 displayLoginHub()
             else:
                 displayLoginHubRegisterDisabled()
-            lunaErrorText.color = ft.colors.WHITE
+            lunaErrorText.color = ft.Colors.WHITE
             lunaErrorText.value = "Please enter a username and password"
             lunaErrorText.update()
         else:
-            lunaErrorText.color = ft.colors.RED
+            lunaErrorText.color = ft.Colors.RED
             lunaErrorText.value = "INVALID PASSWORD"
             lunaErrorText.update()
 
@@ -397,11 +397,11 @@ def main(page: ft.Page):
         """Handles the creation of a user account"""
         if not lunaUsername.value or not lunaPassword.value:
             if not lunaUsername.value:
-                lunaErrorText.color = ft.colors.RED
+                lunaErrorText.color = ft.Colors.RED
                 lunaErrorText.value = "Please enter a username"
                 lunaErrorText.update()
             if not lunaPassword.value:
-                lunaErrorText.color = ft.colors.RED
+                lunaErrorText.color = ft.Colors.RED
                 lunaErrorText.value = "Please enter a password"
                 lunaErrorText.update()
         else:
@@ -440,7 +440,7 @@ def main(page: ft.Page):
     def deleteLunaAccount(e):
         """Handles the deletion of a user account"""
         if not lunaPassword.value:
-            lunaErrorText.color = ft.colors.RED
+            lunaErrorText.color = ft.Colors.RED
             lunaErrorText.value = "Please enter a password"
             lunaErrorText.update()
         else:
@@ -473,7 +473,7 @@ def main(page: ft.Page):
                     lunaUsername.value = ""
                     lunaPassword.value = ""
                 else:
-                    lunaErrorText.color = ft.colors.RED
+                    lunaErrorText.color = ft.Colors.RED
                     lunaErrorText.value = "The password you entered is incorrect"
                     lunaErrorText.update()
             except sqlite3.Error as e:
@@ -485,7 +485,7 @@ def main(page: ft.Page):
     def changeUserPassword(e):
         """Handles changing a user's password"""
         if not lunaPassword.value:
-            lunaErrorText.color = ft.colors.RED
+            lunaErrorText.color = ft.Colors.RED
             lunaErrorText.value = "Please enter a password"
             lunaErrorText.update()
         else:
@@ -513,7 +513,7 @@ def main(page: ft.Page):
 
                     logOutLunaChat("")
                 else:
-                    lunaErrorText.color = ft.colors.RED
+                    lunaErrorText.color = ft.Colors.RED
                     lunaErrorText.value = "The old password you entered is incorrect"
                     lunaErrorText.update()
 
@@ -550,7 +550,7 @@ def main(page: ft.Page):
     def backToLoginHub(e):
         """Sends the user back to the Login Hub"""
         page.close = True
-        lunaErrorText.color = ft.colors.WHITE
+        lunaErrorText.color = ft.Colors.WHITE
         lunaErrorText.value = "Please enter a username and password"
         if settings.enableAccountCreation:
             displayLoginHub()
@@ -740,26 +740,26 @@ def main(page: ft.Page):
             bannedUsername = [line.rstrip('\n') for line in bannedUsername]
 
         if not lunaUsername.value:
-            lunaErrorText.color = ft.colors.RED
+            lunaErrorText.color = ft.Colors.RED
             lunaErrorText.value = "USERNAME CANNOT BE BLANK"
             lunaErrorText.update()
             lunaUsername.value = ""
         elif "lunaBOT" in lunaUsername.value:  # If the user input is lunaBOT it will return an error
-            lunaErrorText.color = ft.colors.RED
+            lunaErrorText.color = ft.Colors.RED
             lunaErrorText.value = "USERNAME INVALID"
             lunaErrorText.update()
             lunaUsername.value = ""
             print("LOG (Login System) Anonymous user tried to log in but the username was invalid")
         elif lunaUsername.value.strip() in usernamesInUse:
             # If the username is found in the usernamesInUse list then the username is in use
-            lunaErrorText.color = ft.colors.RED
+            lunaErrorText.color = ft.Colors.RED
             lunaErrorText.value = "USERNAME IN USE"
             lunaErrorText.update()
             print(f"LOG (Login System) Anonymous user tried to log in with the username {lunaUsername.value.strip()}"
                   f" but it was already in use")
             lunaUsername.value = ""
         elif lunaUsername.value.strip() in bannedUsername:
-            lunaErrorText.color = ft.colors.RED
+            lunaErrorText.color = ft.Colors.RED
             lunaErrorText.value = "USERNAME IS BANNED"
             lunaErrorText.update()
             print(f"LOG (Login System) Anonymous user tried to log in with the username {lunaUsername.value.strip()}"
@@ -818,7 +818,7 @@ def main(page: ft.Page):
                         f.write(f"{lunaUserStorage.value}\n")  # Append the username to the list
                         f.close()
                 else:
-                    lunaErrorText.color = ft.colors.RED
+                    lunaErrorText.color = ft.Colors.RED
                     lunaErrorText.value = "Invalid username or password"
                     lunaErrorText.update()
             except sqlite3.Error as e:
@@ -1192,13 +1192,13 @@ def main(page: ft.Page):
                                 bgcolor=pageBackgroundColor,
                                 toolbar_height=40,
                                 actions=[
-                                    ft.IconButton(ft.icons.SEARCH, icon_color=ft.colors.PINK, on_click=lambda _:
+                                    ft.IconButton(ft.Icons.SEARCH, icon_color=ft.Colors.PINK, on_click=lambda _:
                                     page.go("/search")),
-                                    ft.IconButton(ft.icons.INFO, on_click=openVersionInfo, icon_color=ft.colors.PINK),
-                                    ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription,
-                                                  icon_color=ft.colors.PINK),
-                                    ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.colors.PINK),
-                                    ft.IconButton(ft.icons.ACCOUNT_CIRCLE, icon_color=ft.colors.PINK,
+                                    ft.IconButton(ft.Icons.INFO, on_click=openVersionInfo, icon_color=ft.Colors.PINK),
+                                    ft.IconButton(ft.Icons.DESCRIPTION, on_click=openDisplayDescription,
+                                                  icon_color=ft.Colors.PINK),
+                                    ft.IconButton(ft.Icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.Colors.PINK),
+                                    ft.IconButton(ft.Icons.ACCOUNT_CIRCLE, icon_color=ft.Colors.PINK,
                                                   on_click=lambda _: page.go(f"/{settings.chatPortalName}"))
                                 ]),
                             ft.Container(
@@ -1209,18 +1209,18 @@ def main(page: ft.Page):
                                             ft.Row(controls=[
                                                 ft.CircleAvatar(  # The avatar that will pop up in the message container
                                                     content=ft.Text(getInitials(lunaUserStorage.value)),
-                                                    color=ft.colors.WHITE,
+                                                    color=ft.Colors.WHITE,
                                                     bgcolor=getAvatarColor(lunaUserStorage.value)),
                                                 ft.Text(f"{lunaUserStorage.value}"),
                                             ]),
-                                            ft.Text("            Online", color=ft.colors.BLUE),
+                                            ft.Text("            Online", color=ft.Colors.BLUE),
                                             ft.Text(f"            Status: {lunaStatusStorage.value}"),
                                             lunaStatus,
                                             ft.Row(controls=[
-                                                ft.CupertinoButton(text="Change Password", color=ft.colors.PINK,
+                                                ft.CupertinoButton(text="Change Password", color=ft.Colors.PINK,
                                                                    bgcolor=dialogButtonColor, padding=5,
                                                                    on_click=changePasswordMenu),
-                                                ft.CupertinoButton(text="Delete Account", color=ft.colors.PINK,
+                                                ft.CupertinoButton(text="Delete Account", color=ft.Colors.PINK,
                                                                    bgcolor=dialogButtonColor, padding=5,
                                                                    on_click=deleteAccountMenu)
                                             ]),
@@ -1266,13 +1266,13 @@ def main(page: ft.Page):
                                 bgcolor=pageBackgroundColor,
                                 toolbar_height=40,
                                 actions=[
-                                    ft.IconButton(ft.icons.SEARCH, icon_color=ft.colors.PINK, on_click=lambda _:
+                                    ft.IconButton(ft.Icons.SEARCH, icon_color=ft.Colors.PINK, on_click=lambda _:
                                     page.go("/search")),
-                                    ft.IconButton(ft.icons.INFO, on_click=openVersionInfo, icon_color=ft.colors.PINK),
-                                    ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription,
-                                                  icon_color=ft.colors.PINK),
-                                    ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.colors.PINK),
-                                    ft.IconButton(ft.icons.ACCOUNT_CIRCLE, icon_color=ft.colors.PINK,
+                                    ft.IconButton(ft.Icons.INFO, on_click=openVersionInfo, icon_color=ft.Colors.PINK),
+                                    ft.IconButton(ft.Icons.DESCRIPTION, on_click=openDisplayDescription,
+                                                  icon_color=ft.Colors.PINK),
+                                    ft.IconButton(ft.Icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.Colors.PINK),
+                                    ft.IconButton(ft.Icons.ACCOUNT_CIRCLE, icon_color=ft.Colors.PINK,
                                                   on_click=lambda _: page.go("/chat"))
                                 ]),
                             ft.Container(
@@ -1283,11 +1283,11 @@ def main(page: ft.Page):
                                             ft.Row(controls=[
                                                 ft.CircleAvatar(  # The avatar that will pop up in the message container
                                                     content=ft.Text(getInitials(lunaUserProfileStorage.value)),
-                                                    color=ft.colors.WHITE,
+                                                    color=ft.Colors.WHITE,
                                                     bgcolor=getAvatarColor(lunaUserProfileStorage.value)),
                                                 ft.Text(f"{lunaUserProfileStorage.value}"),
                                             ]),
-                                            ft.Text("            Activity Status Unknown", color=ft.colors.BLUE),
+                                            ft.Text("            Activity Status Unknown", color=ft.Colors.BLUE),
                                             ft.Text(f"            Status: {lunaUserProfileStatusStorage.value}"),
 
                                         ],
@@ -1329,13 +1329,13 @@ def main(page: ft.Page):
                                 bgcolor=pageBackgroundColor,
                                 toolbar_height=40,
                                 actions=[
-                                    ft.IconButton(ft.icons.SEARCH, icon_color=ft.colors.PINK, on_click=lambda _:
+                                    ft.IconButton(ft.Icons.SEARCH, icon_color=ft.Colors.PINK, on_click=lambda _:
                                     page.go("/search")),
-                                    ft.IconButton(ft.icons.INFO, on_click=openVersionInfo, icon_color=ft.colors.PINK),
-                                    ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription,
-                                                  icon_color=ft.colors.PINK),
-                                    ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.colors.PINK),
-                                    ft.IconButton(ft.icons.ACCOUNT_CIRCLE, icon_color=ft.colors.PINK,
+                                    ft.IconButton(ft.Icons.INFO, on_click=openVersionInfo, icon_color=ft.Colors.PINK),
+                                    ft.IconButton(ft.Icons.DESCRIPTION, on_click=openDisplayDescription,
+                                                  icon_color=ft.Colors.PINK),
+                                    ft.IconButton(ft.Icons.LOGOUT, on_click=logOutLunaChat, icon_color=ft.Colors.PINK),
+                                    ft.IconButton(ft.Icons.ACCOUNT_CIRCLE, icon_color=ft.Colors.PINK,
                                                   on_click=lambda _: page.go(
                                                       f"/{settings.profilePortalName}/{lunaUserStorage.value}"))
                                 ],
@@ -1344,9 +1344,9 @@ def main(page: ft.Page):
                             lunaChat,
                             ft.Row(controls=[newMessage,
                                              ft.IconButton(
-                                                 icon=ft.icons.SEND_ROUNDED,
-                                                 bgcolor=ft.colors.PINK_100,
-                                                 icon_color=ft.colors.PINK,
+                                                 icon=ft.Icons.SEND_ROUNDED,
+                                                 bgcolor=ft.Colors.PINK_100,
+                                                 icon_color=ft.Colors.PINK,
                                                  icon_size=20,
                                                  on_click=sendClick
                                              )])
@@ -1374,15 +1374,15 @@ def main(page: ft.Page):
                                 bgcolor=pageBackgroundColor,
                                 toolbar_height=40,
                                 actions=[
-                                    ft.IconButton(ft.icons.SEARCH, icon_color=ft.colors.PINK, on_click=lambda _:
+                                    ft.IconButton(ft.Icons.SEARCH, icon_color=ft.Colors.PINK, on_click=lambda _:
                                     page.go("/chat")),
-                                    ft.IconButton(ft.icons.INFO, on_click=openVersionInfo,
-                                                    icon_color=ft.colors.PINK),
-                                    ft.IconButton(ft.icons.DESCRIPTION, on_click=openDisplayDescription,
-                                                    icon_color=ft.colors.PINK),
-                                    ft.IconButton(ft.icons.LOGOUT, on_click=logOutLunaChat,
-                                                    icon_color=ft.colors.PINK),
-                                    ft.IconButton(ft.icons.ACCOUNT_CIRCLE, icon_color=ft.colors.PINK,
+                                    ft.IconButton(ft.Icons.INFO, on_click=openVersionInfo,
+                                                    icon_color=ft.Colors.PINK),
+                                    ft.IconButton(ft.Icons.DESCRIPTION, on_click=openDisplayDescription,
+                                                    icon_color=ft.Colors.PINK),
+                                    ft.IconButton(ft.Icons.LOGOUT, on_click=logOutLunaChat,
+                                                    icon_color=ft.Colors.PINK),
+                                    ft.IconButton(ft.Icons.ACCOUNT_CIRCLE, icon_color=ft.Colors.PINK,
                                                     on_click=lambda _: page.go("/profile"))
                                 ]),
                             ft.Container(
